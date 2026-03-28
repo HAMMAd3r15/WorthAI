@@ -11,42 +11,42 @@ const testimonials = [
   },
   {
     text: "Implementing Worth was smooth and quick. The customizable, user-friendly interface made team training effortless.",
-    name: "Bilal Ahmed",
+    name: "Daniel Cooper",
     role: "IT Manager",
   },
   {
     text: "The support team is exceptional, guiding us through setup and providing ongoing assistance, ensuring our satisfaction.",
-    name: "Saman Malik",
+    name: "Sarah Mitchell",
     role: "Customer Support Lead",
   },
   {
     text: "Worth's seamless integration enhanced our business operations and efficiency. Highly recommend for its intuitive interface.",
-    name: "Omar Raza",
+    name: "James Whitfield",
     role: "CEO",
   },
   {
     text: "Its robust features and quick support have transformed our workflow, making us significantly more efficient.",
-    name: "Zainab Hussain",
+    name: "Rachel Henderson",
     role: "Project Manager",
   },
   {
     text: "The smooth implementation exceeded expectations. It streamlined processes, improving overall business performance.",
-    name: "Aliza Khan",
+    name: "Emily Carter",
     role: "Business Analyst",
   },
   {
     text: "Our business functions improved with a user-friendly design and positive customer feedback.",
-    name: "Farhan Siddiqui",
+    name: "Marcus Bennett",
     role: "Marketing Director",
   },
   {
     text: "They delivered a solution that exceeded expectations, understanding our needs and enhancing our operations.",
-    name: "Sana Sheikh",
+    name: "Lauren Davis",
     role: "Sales Manager",
   },
   {
     text: "Using Worth, our online presence and conversions significantly improved, boosting business performance.",
-    name: "Hassan Ali",
+    name: "Ryan Gallagher",
     role: "E-commerce Manager",
   },
 ];
