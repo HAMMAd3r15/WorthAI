@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Send, Sparkles, User, CheckCircle2, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
+import { MobileSummaryBar } from "./mobile-summary-bar"
 
 type Message = {
   role: 'user' | 'assistant'
@@ -183,7 +184,9 @@ export function ChatInterface() {
 
   return (
     <div className="flex-1 flex flex-col min-h-0 relative">
+      <MobileSummaryBar />
       {/* Messages */}
+
       <div 
         ref={scrollRef} 
         className="flex-1 overflow-y-auto px-6 pt-8 pb-32 space-y-8 scroll-smooth"

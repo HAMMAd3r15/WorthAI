@@ -6,12 +6,12 @@ import { X, Check, Sparkles, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
 
-export function PricingModal({ 
-  profile, 
+export function PricingModal({
+  profile,
   onClose,
   onSuccess
-}: { 
-  profile: any, 
+}: {
+  profile: any,
   onClose: () => void,
   onSuccess: () => void
 }) {
@@ -57,21 +57,21 @@ export function PricingModal({
   const proFeatures = [
     "Unlimited AI questions",
     "Multiple income sources",
-    "Full debt and savings tracking",
+    "All chats reports",
     "Priority response speed",
     "Ad-free experience"
   ]
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
         className="absolute inset-0 bg-black/80 backdrop-blur-md"
       />
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -88,24 +88,24 @@ export function PricingModal({
 
           {/* Toggle */}
           <div className="flex items-center gap-4 bg-white/5 p-1 rounded-2xl mb-16 relative">
-            <button 
+            <button
               onClick={() => setBillingCycle('monthly')}
               className={`px-6 py-2.5 text-sm font-bold rounded-xl transition-all relative z-10 ${billingCycle === 'monthly' ? 'text-black' : 'text-secondary hover:text-white'}`}
             >
               Monthly
             </button>
-            <button 
+            <button
               onClick={() => setBillingCycle('yearly')}
               className={`px-6 py-2.5 text-sm font-bold rounded-xl transition-all relative z-10 flex items-center gap-2 ${billingCycle === 'yearly' ? 'text-black' : 'text-secondary hover:text-white'}`}
             >
               Yearly
               <span className="px-1.5 py-0.5 bg-[#C9A84C]/20 text-[#C9A84C] text-[8px] font-black rounded uppercase">-17%</span>
             </button>
-            <motion.div 
+            <motion.div
               layoutId="cycle-bg"
               className="absolute inset-y-1 bg-[#C9A84C] rounded-xl z-0 shadow-lg shadow-[#C9A84C]/20"
               initial={false}
-              animate={{ 
+              animate={{
                 x: billingCycle === 'monthly' ? 4 : 108,
                 width: billingCycle === 'monthly' ? 95 : 105
               }}
@@ -116,7 +116,7 @@ export function PricingModal({
           {/* Cards */}
           <div className="grid md:grid-cols-2 gap-8 w-full max-w-4xl">
             {/* Free Plan */}
-            <motion.div 
+            <motion.div
               whileHover={{ y: -8 }}
               className="p-10 bg-white/5 border border-white/5 rounded-3xl flex flex-col items-start h-full transition-colors hover:border-white/10"
             >
@@ -134,18 +134,18 @@ export function PricingModal({
                 ))}
               </ul>
               {profile?.plan === 'free' ? (
-                 <Button disabled className="w-full h-14 bg-white/10 text-white font-bold text-base rounded-2xl opacity-50 cursor-not-allowed">
-                    Current Plan
-                 </Button>
+                <Button disabled className="w-full h-14 bg-white/10 text-white font-bold text-base rounded-2xl opacity-50 cursor-not-allowed">
+                  Current Plan
+                </Button>
               ) : (
                 <Button variant="outline" className="w-full h-14 border-white/10 text-white font-bold text-base rounded-2xl hover:bg-white/5">
-                   Downgrade
+                  Downgrade
                 </Button>
               )}
             </motion.div>
 
             {/* Pro Plan */}
-            <motion.div 
+            <motion.div
               whileHover={{ y: -8 }}
               className="p-10 bg-white/[0.03] border-2 border-[#C9A84C] rounded-3xl flex flex-col items-start h-full relative group"
             >
@@ -153,7 +153,7 @@ export function PricingModal({
                 Recommended
               </div>
               <div className="absolute inset-0 bg-[#C9A84C]/5 rounded-3xl opacity-0 transition-opacity group-hover:opacity-100" />
-              
+
               <h3 className="text-xl font-bold mb-2">Pro</h3>
               <div className="flex items-baseline gap-1 mb-6">
                 <span className="text-4xl font-black text-white">
@@ -163,7 +163,7 @@ export function PricingModal({
                   {billingCycle === 'monthly' ? '/month' : '/year'}
                 </span>
               </div>
-              
+
               <ul className="space-y-4 mb-10 flex-1 relative z-10">
                 {proFeatures.map((f, i) => (
                   <li key={i} className="flex items-center gap-3 text-sm text-white/80">
@@ -174,7 +174,7 @@ export function PricingModal({
               </ul>
 
               <div className="w-full relative z-10">
-                <Button 
+                <Button
                   onClick={handleUpgrade}
                   disabled={loading || profile?.plan === 'pro'}
                   className="w-full h-14 bg-[#C9A84C] text-black font-extrabold text-lg rounded-2xl shadow-xl shadow-[#C9A84C]/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -182,7 +182,7 @@ export function PricingModal({
                   {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : profile?.plan === 'pro' ? "Current Plan" : "Upgrade to Pro"}
                 </Button>
                 <p className="mt-4 text-[11px] text-secondary text-center italic opacity-60 font-bold">
-                   Test mode — simulating Pro upgrade
+                  Test mode — simulating Pro upgrade
                 </p>
               </div>
             </motion.div>

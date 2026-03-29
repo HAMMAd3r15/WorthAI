@@ -17,6 +17,8 @@ export function OnboardingFlow() {
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [profile, setProfile] = useState<any>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [isShaking, setIsShaking] = useState(false)
 
   useEffect(() => {
     async function fetchProfile() {
@@ -42,48 +44,81 @@ export function OnboardingFlow() {
 
   const totalSteps = 4
 
-  const addItem = (setter: any) => setter((prev: any) => [...prev, { label: "", amount: 0 }])
-  const removeItem = (setter: any, index: number) => setter((prev: any) => prev.filter((_: any, i: number) => i !== index))
-  const updateItem = (setter: any, index: number, field: string, value: any) => setter((prev: any) => {
-    const next = [...prev]
-    next[index] = { ...next[index], [field]: value }
-    return next
-  })
+  const addItem = (setter: any) => {
+    setError(null)
+    setter((prev: any) => [...prev, { label: "", amount: 0 }])
+  }
+  const removeItem = (setter: any, index: number) => {
+    setError(null)
+    setter((prev: any) => prev.filter((_: any, i: number) => i !== index))
+  }
+  const updateItem = (setter: any, index: number, field: string, value: any) => {
+    setError(null)
+    setter((prev: any) => {
+      const next = [...prev]
+      next[index] = { ...next[index], [field]: value }
+      return next
+    })
+  }
+
+  const triggerShake = () => {
+    setIsShaking(true)
+    setTimeout(() => setIsShaking(false), 500)
+  }
+
+  const validateStep = (currentStep: number) => {
+    setError(null)
+    if (currentStep === 1) {
+      const hasValidIncome = income.some(i => i.label.trim() !== "" && i.amount > 0)
+      if (!hasValidIncome) {
+        setError("Please enter your monthly income to continue")
+        triggerShake()
+        return false
+      }
+    } else if (currentStep === 2) {
+      const hasValidExpense = expenses.some(i => i.label.trim() !== "" && i.amount > 0)
+      if (!hasValidExpense) {
+        setError("Please enter your monthly expenses to continue")
+        triggerShake()
+        return false
+      }
+    }
+    return true
+  }
 
   const handleComplete = async () => {
+    if (!validateStep(1) || !validateStep(2)) {
+      if (!validateStep(1)) setStep(1)
+      else if (!validateStep(2)) setStep(2)
+      return
+    }
+
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
     
     if (user) {
       try {
-        // 1. Create Profile
         const { data: pData, error: profileError } = await supabase
           .from('profiles')
           .upsert({ id: user.id, plan: 'free' }, { onConflict: 'id' })
           .select()
-        console.log("Upsert Profile Result:", { data: pData, error: profileError })
+        
         if (profileError) throw profileError
-
-        // 2. Save Financial Profile
-
 
         const { data: fData, error: finError } = await supabase
           .from('financial_profiles')
           .upsert({
             user_id: user.id,
-            income_sources: income.filter(i => i.label),
-            expenses: expenses.filter(i => i.label),
+            income_sources: income.filter(i => i.label && i.amount > 0),
+            expenses: expenses.filter(i => i.label && i.amount > 0),
             savings: savings,
-            debts: debts.filter(i => i.label),
+            debts: debts.filter(i => i.label && i.amount > 0),
             updated_at: new Date().toISOString()
           }, { onConflict: 'user_id' })
           .select()
-        console.log("Upsert Financial Profile Result:", { data: fData, error: finError })
+        
         if (finError) throw finError
 
-
-
-        // Success - small delay before redirect to ensure state is persisted
         setTimeout(() => {
           router.push('/dashboard')
         }, 500)
@@ -96,8 +131,15 @@ export function OnboardingFlow() {
     setLoading(false)
   }
 
-  const nextStep = () => setStep(s => Math.min(s + 1, totalSteps))
-  const prevStep = () => setStep(s => Math.max(s - 1, 1))
+  const nextStep = () => {
+    if (validateStep(step)) {
+      setStep(s => Math.min(s + 1, totalSteps))
+    }
+  }
+  const prevStep = () => {
+    setError(null)
+    setStep(s => Math.max(s - 1, 1))
+  }
 
   const inputClass = "w-full bg-[#0D1117] border border-white/5 p-4 text-sm focus:border-[#C9A84C]/50 focus:ring-1 focus:ring-[#C9A84C]/30 outline-none transition-all rounded-lg"
   const numberInputClass = `${inputClass} [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`
@@ -106,9 +148,15 @@ export function OnboardingFlow() {
   const cardClass = "p-12 bg-[#111827] border-[#C9A84C]/20 hover:border-[#C9A84C]/40 rounded-2xl"
   const nextBtnClass = "w-10 h-10 p-0 rounded-full"
 
+  const shakeVariants = {
+    shake: {
+      x: [0, -10, 10, -10, 10, 0],
+      transition: { duration: 0.4 }
+    }
+  }
+
   return (
     <div className="max-w-2xl mx-auto py-12 px-4">
-      {/* Progress Bar */}
       <div className="mb-10 flex items-center gap-3">
         {Array.from({ length: totalSteps }).map((_, i) => (
           <div 
@@ -131,7 +179,11 @@ export function OnboardingFlow() {
               <h2 className="text-3xl font-bold mb-3 tracking-tight">Monthly Income</h2>
               <p className="text-secondary text-base mb-10 opacity-80">Add all your recurring income sources.</p>
               
-              <div className="space-y-4 mb-8">
+              <motion.div 
+                className="space-y-4 mb-8"
+                animate={isShaking ? "shake" : ""}
+                variants={shakeVariants}
+              >
                 {income.map((item, i) => (
                   <div key={i} className="flex gap-6 items-end">
                     <div className="flex-1 space-y-2">
@@ -140,7 +192,7 @@ export function OnboardingFlow() {
                         value={item.label}
                         onChange={e => updateItem(setIncome, i, 'label', e.target.value)}
                         placeholder="e.g. Salary, Freelance"
-                        className={inputClass}
+                        className={`${inputClass} ${error && !item.label.trim() ? 'border-danger/50 bg-danger/5' : ''}`}
                       />
                     </div>
                     <div className="w-40 space-y-2">
@@ -150,7 +202,7 @@ export function OnboardingFlow() {
                         value={item.amount === 0 ? "" : item.amount}
                         onChange={e => updateItem(setIncome, i, 'amount', Number(e.target.value))}
                         placeholder="0"
-                        className={numberInputClass}
+                        className={`${numberInputClass} ${error && item.amount <= 0 ? 'border-danger/50 bg-danger/5' : ''}`}
                       />
                     </div>
                     {income.length > 1 && (
@@ -160,6 +212,9 @@ export function OnboardingFlow() {
                     )}
                   </div>
                 ))}
+                
+                {error && <p className="text-danger text-sm font-medium animate-in fade-in slide-in-from-top-1">{error}</p>}
+
                 {isPro ? (
                   <button onClick={() => addItem(setIncome)} className={addBtnClass}>
                     <Plus className="w-4 h-4" /> Add Another Source
@@ -171,7 +226,7 @@ export function OnboardingFlow() {
                     <Link href="/#pricing" className="text-[#C9A84C] hover:text-[#D4B96A] font-bold underline underline-offset-4 ml-1 transition-colors">Upgrade</Link>
                   </p>
                 )}
-              </div>
+              </motion.div>
 
               <div className="flex justify-center">
                 <Button onClick={nextStep} size="sm" className={nextBtnClass}>
@@ -186,7 +241,11 @@ export function OnboardingFlow() {
               <h2 className="text-3xl font-bold mb-3 tracking-tight">Monthly Expenses</h2>
               <p className="text-secondary text-base mb-10 opacity-80">Rent, food, transport, subscriptions, etc.</p>
               
-              <div className="space-y-4 mb-8">
+              <motion.div 
+                className="space-y-4 mb-8"
+                animate={isShaking ? "shake" : ""}
+                variants={shakeVariants}
+              >
                 {expenses.map((item, i) => (
                   <div key={i} className="flex gap-6 items-end">
                     <div className="flex-1 space-y-2">
@@ -195,7 +254,7 @@ export function OnboardingFlow() {
                         value={item.label}
                         onChange={e => updateItem(setExpenses, i, 'label', e.target.value)}
                         placeholder="e.g. Rent, Groceries"
-                        className={inputClass}
+                        className={`${inputClass} ${error && !item.label.trim() ? 'border-danger/50 bg-danger/5' : ''}`}
                       />
                     </div>
                     <div className="w-40 space-y-2">
@@ -205,7 +264,7 @@ export function OnboardingFlow() {
                         value={item.amount === 0 ? "" : item.amount}
                         onChange={e => updateItem(setExpenses, i, 'amount', Number(e.target.value))}
                         placeholder="0"
-                        className={numberInputClass}
+                        className={`${numberInputClass} ${error && item.amount <= 0 ? 'border-danger/50 bg-danger/5' : ''}`}
                       />
                     </div>
                     {expenses.length > 1 && (
@@ -215,10 +274,13 @@ export function OnboardingFlow() {
                     )}
                   </div>
                 ))}
+
+                {error && <p className="text-danger text-sm font-medium animate-in fade-in slide-in-from-top-1">{error}</p>}
+
                 <button onClick={() => addItem(setExpenses)} className={addBtnClass}>
                   <Plus className="w-4 h-4" /> Add Another Expense
                 </button>
-              </div>
+              </motion.div>
 
               <div className="flex justify-between items-center">
                 <Button onClick={prevStep} size="sm" className={nextBtnClass}>
@@ -242,7 +304,10 @@ export function OnboardingFlow() {
                   <input 
                     type="number"
                     value={savings === 0 ? "" : savings}
-                    onChange={e => setSavings(Number(e.target.value))}
+                    onChange={e => {
+                      setError(null)
+                      setSavings(Number(e.target.value))
+                    }}
                     placeholder="0"
                     className={`w-full bg-[#0D1117] border border-white/5 p-6 text-4xl font-bold focus:border-[#C9A84C]/50 focus:ring-1 focus:ring-[#C9A84C]/30 outline-none transition-all rounded-lg text-[#C9A84C] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`}
                   />
