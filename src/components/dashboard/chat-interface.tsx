@@ -275,8 +275,8 @@ export function ChatInterface() {
 
                     <div className={`max-w-[85%] md:max-w-[70%] ${
                       m.role === 'user' 
-                      ? 'bg-[#111827] border-white/10 rounded-2xl rounded-tr-none p-5 text-white/90' 
-                      : 'bg-white/5 border-white/5 rounded-2xl rounded-tl-none p-6 shadow-2xl'
+                      ? 'bg-[#111827] border-white/10 rounded-2xl rounded-tr-none p-4 md:p-5 text-white/90' 
+                      : 'bg-white/5 border-white/5 rounded-2xl rounded-tl-none p-4 md:p-6 shadow-2xl'
                     } border`}>
                       {m.role === 'assistant' && (
                         <div className="mb-0">
@@ -290,16 +290,16 @@ export function ChatInterface() {
                               {m.verdict}
                             </span>
                           )}
-                          <p className="text-[15px] leading-relaxed text-foreground font-medium mb-6">
+                          <p className="text-[14px] leading-[1.5] md:text-[15px] md:leading-relaxed text-foreground font-medium mb-4 md:mb-6">
                             {m.content}
                           </p>
                           
                           {m.actionPlan && m.actionPlan.length > 0 && (
-                            <div className="space-y-3 bg-white/5 p-5 rounded-xl border border-white/5">
-                              <h4 className="text-[10px] font-bold text-[#C9A84C] uppercase tracking-widest mb-1">Action Plan</h4>
-                              <ul className="space-y-2.5">
+                            <div className="space-y-2 md:space-y-3 bg-white/5 p-3 md:p-5 rounded-xl border border-white/5">
+                              <h4 className="text-[9px] md:text-[10px] font-bold text-[#C9A84C] uppercase tracking-widest mb-1">Action Plan</h4>
+                              <ul className="space-y-1.5 md:space-y-2.5">
                                 {m.actionPlan.map((step, si) => (
-                                  <li key={si} className="flex gap-3 text-sm text-secondary font-medium leading-normal">
+                                  <li key={si} className="flex gap-2 md:gap-3 text-[13px] md:text-sm text-secondary font-medium leading-normal">
                                     <span className="text-[#C9A84C] font-bold">{si + 1}.</span>
                                     {step}
                                   </li>
