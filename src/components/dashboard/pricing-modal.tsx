@@ -75,19 +75,19 @@ export function PricingModal({
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="relative w-full max-w-4xl bg-[#111827] border border-white/10 rounded-[32px] shadow-2xl overflow-y-auto max-h-[90vh]"
+        className="relative w-[95vw] h-[90vh] md:w-full md:max-w-4xl bg-[#111827] border border-white/10 rounded-[32px] shadow-2xl overflow-y-auto"
       >
-        <button onClick={onClose} className="absolute right-6 top-6 p-2 hover:bg-white/5 rounded-full transition-colors z-10">
+        <button onClick={onClose} className="absolute right-4 top-4 md:right-6 md:top-6 p-2 hover:bg-white/5 rounded-full transition-colors z-10">
           <X className="w-5 h-5 text-secondary" />
         </button>
 
-        <div className="p-12 md:p-16 flex flex-col items-center">
+        <div className="p-8 md:p-16 flex flex-col items-center">
           <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#C9A84C] mb-4">Pricing</span>
-          <h2 className="text-4xl md:text-5xl font-black tracking-tight text-white mb-4 text-center">Choose Your Plan</h2>
-          <p className="text-secondary text-base mb-12 text-center max-w-md">Upgrade anytime. Cancel anytime. Take full control of your net worth today.</p>
+          <h2 className="text-3xl md:text-5xl font-black tracking-tight text-white mb-4 text-center">Choose Your Plan</h2>
+          <p className="text-secondary text-sm md:text-base mb-10 md:mb-12 text-center max-w-md px-4">Upgrade anytime. Cancel anytime. Take full control of your net worth today.</p>
 
           {/* Toggle */}
-          <div className="flex items-center gap-4 bg-white/5 p-1 rounded-2xl mb-16 relative">
+          <div className="flex items-center gap-2 md:gap-4 bg-white/5 p-1 rounded-2xl mb-12 md:mb-16 relative">
             <button
               onClick={() => setBillingCycle('monthly')}
               className={`px-6 py-2.5 text-sm font-bold rounded-xl transition-all relative z-10 ${billingCycle === 'monthly' ? 'text-black' : 'text-secondary hover:text-white'}`}
@@ -118,7 +118,7 @@ export function PricingModal({
             {/* Free Plan */}
             <motion.div
               whileHover={{ y: -8 }}
-              className="p-10 bg-white/5 border border-white/5 rounded-3xl flex flex-col items-start h-full transition-colors hover:border-white/10"
+              className="p-8 md:p-10 bg-white/5 border border-white/5 rounded-3xl flex flex-col items-start h-full transition-colors hover:border-white/10"
             >
               <h3 className="text-xl font-bold mb-2">Free</h3>
               <div className="flex items-baseline gap-1 mb-6">
@@ -147,7 +147,7 @@ export function PricingModal({
             {/* Pro Plan */}
             <motion.div
               whileHover={{ y: -8 }}
-              className="p-10 bg-white/[0.03] border-2 border-[#C9A84C] rounded-3xl flex flex-col items-start h-full relative group"
+              className="p-8 md:p-10 bg-white/[0.03] border-2 border-[#C9A84C] rounded-3xl flex flex-col items-start h-full relative group"
             >
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-[#C9A84C] text-black text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg shadow-[#C9A84C]/20">
                 Recommended

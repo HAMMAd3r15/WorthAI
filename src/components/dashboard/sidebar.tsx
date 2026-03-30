@@ -94,12 +94,11 @@ export function Sidebar({ financial, profile }: { financial: any, profile: any }
         {/* Report Button */}
         <div className="px-1 mt-2">
           <button 
-            disabled={profile?.plan !== 'pro'}
             onClick={openReport}
             className={`w-full group relative overflow-hidden p-4 rounded-2xl border transition-all duration-300 ${
               profile?.plan === 'pro' 
                 ? 'bg-[#C9A84C]/5 border-[#C9A84C]/20 hover:border-[#C9A84C]/40 hover:bg-[#C9A84C]/10 active:scale-[0.98]' 
-                : 'bg-white/5 border-white/5 opacity-50 cursor-not-allowed group'
+                : 'bg-white/5 border-white/5 opacity-50 hover:bg-white/10 active:scale-[0.98] group'
             }`}
           >
             <div className="flex items-center gap-3 relative z-10">

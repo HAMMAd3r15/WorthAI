@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { X, RefreshCw, Loader2, Sparkles, CheckCircle2, AlertTriangle, ArrowRight, ShieldAlert, AlertCircle } from "lucide-react"
+import { X, RefreshCw, Loader2, Sparkles, CheckCircle2, AlertTriangle, ArrowRight, ShieldAlert, AlertCircle, Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useModals } from "@/components/providers/modal-provider"
 
 interface Report {
   score: number;
@@ -20,10 +21,12 @@ interface ReportModalProps {
 }
 
 export function ReportModal({ profile, onClose }: ReportModalProps) {
+  const { openPricing } = useModals()
   const [report, setReport] = useState<Report | null>(null)
   const [lastGenerated, setLastGenerated] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const isLocked = profile?.plan !== 'pro'
   const currentMonthYear = new Date().toLocaleString('default', { month: 'long', year: 'numeric' })
 
   // Close on Escape key
@@ -40,6 +43,10 @@ export function ReportModal({ profile, onClose }: ReportModalProps) {
     async function fetchReport() {
       setLoading(true)
       try {
+        if (isLocked) {
+          setLoading(false)
+          return
+        }
         const response = await fetch('/api/generate-report', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -105,37 +112,63 @@ export function ReportModal({ profile, onClose }: ReportModalProps) {
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="relative w-full max-w-[600px] bg-[#0A0D14] border border-white/10 rounded-[40px] shadow-2xl flex flex-col max-h-[90vh] overflow-hidden"
+        className="relative w-[95vw] h-[90vh] md:w-full md:max-w-[600px] md:h-auto md:max-h-[85vh] bg-[#0A0D14] border border-white/10 rounded-[32px] md:rounded-[40px] shadow-2xl flex flex-col overflow-hidden"
       >
         {/* Header */}
-        <div className="p-8 border-b border-white/5 flex items-center justify-between shrink-0 bg-[#0A0D14] z-10">
+        <div className="px-6 py-5 md:p-8 border-b border-white/5 flex items-center justify-between shrink-0 bg-[#0A0D14] z-20">
           <div>
-            <h2 className="text-xl font-bold tracking-tight bg-gradient-to-r from-white to-white/40 bg-clip-text text-transparent italic">Worth Report</h2>
-            <p className="text-secondary/50 text-[10px] font-bold uppercase tracking-[0.2em] mt-1">{currentMonthYear}</p>
+            <h2 className="text-lg md:text-xl font-bold tracking-tight bg-gradient-to-r from-white to-white/40 bg-clip-text text-transparent italic">Worth Report</h2>
+            <p className="text-secondary/50 text-[10px] font-bold uppercase tracking-[0.2em] mt-0.5 md:mt-1">{currentMonthYear}</p>
           </div>
-          <div className="flex items-center gap-3">
-            {report && (
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => generateReport(true)}
-                disabled={loading}
-                className="h-9 px-4 border-white/10 text-secondary hover:bg-white/5 font-bold rounded-xl text-xs flex items-center gap-2 uppercase tracking-widest transition-all hover:scale-105 active:scale-95"
-              >
-                {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
-                Regenerate
-              </Button>
-            )}
-            <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors text-secondary hover:text-white">
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+          <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors text-secondary hover:text-white">
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto p-8 custom-scrollbar space-y-12">
+        <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar relative">
           <AnimatePresence mode="wait">
-            {loading && !report ? (
+            {isLocked ? (
+              <motion.div 
+                key="locked"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="absolute inset-0 z-50 flex flex-col items-center justify-center p-8 text-center bg-[#0A0D14]/40 backdrop-blur-xl"
+              >
+                <div className="w-20 h-20 rounded-3xl bg-[#C9A84C]/10 flex items-center justify-center border border-[#C9A84C]/20 shadow-2xl mb-6 relative">
+                  <Lock className="w-8 h-8 text-[#C9A84C]" />
+                  <div className="absolute inset-0 bg-[#C9A84C]/20 blur-2xl rounded-full" />
+                </div>
+                <h3 className="text-2xl font-black text-white mb-3 tracking-tight">Pro Feature</h3>
+                <p className="text-secondary text-base leading-relaxed mb-8 max-w-[280px]">
+                  Unlock your monthly AI financial health audit and personalized action plans with <span className="text-[#C9A84C] font-bold">Worth Pro</span>.
+                </p>
+                <Button 
+                  onClick={openPricing}
+                  className="bg-[#C9A84C] text-black hover:bg-[#B69742] font-black px-8 py-6 rounded-2xl text-base shadow-xl shadow-[#C9A84C]/20 transition-all hover:scale-105 active:scale-95"
+                >
+                  Upgrade to Pro
+                </Button>
+                
+                {/* Blurred fake content background */}
+                <div className="absolute inset-0 -z-10 opacity-10 pointer-events-none select-none">
+                  <div className="p-8 space-y-12 blur-md">
+                     <div className="flex flex-col items-center gap-4">
+                        <div className="w-32 h-32 rounded-full border-8 border-white/20" />
+                        <div className="h-4 w-48 bg-white/20 rounded" />
+                     </div>
+                     <div className="space-y-4">
+                        <div className="h-4 w-32 bg-[#10B981]/20 rounded" />
+                        <div className="h-24 w-full bg-white/5 rounded-3xl" />
+                     </div>
+                     <div className="space-y-4">
+                        <div className="h-4 w-32 bg-[#EF4444]/20 rounded" />
+                        <div className="h-24 w-full bg-white/5 rounded-3xl" />
+                     </div>
+                  </div>
+                </div>
+              </motion.div>
+            ) : loading && !report ? (
               <motion.div 
                 key="loading"
                 initial={{ opacity: 0 }}
@@ -246,7 +279,7 @@ export function ReportModal({ profile, onClose }: ReportModalProps) {
                             {concern.tag}
                           </span>
                         </div>
-                        <p className="text-white/90 text-[15px] font-medium leading-relaxed pl-12">
+                        <p className="text-white/90 text-[14px] md:text-[15px] font-medium leading-relaxed pl-12">
                           {concern.text}
                         </p>
                       </div>
@@ -266,7 +299,7 @@ export function ReportModal({ profile, onClose }: ReportModalProps) {
                         <span className="w-8 h-8 rounded-lg bg-[#C9A84C]/10 border border-[#C9A84C]/20 flex items-center justify-center text-[#C9A84C] font-black shrink-0 text-sm">
                           {i + 1}
                         </span>
-                        <p className="text-white text-[15px] font-medium leading-relaxed opacity-90">{action}</p>
+                        <p className="text-white text-[14px] md:text-[15px] font-medium leading-relaxed opacity-90">{action}</p>
                       </div>
                     ))}
                   </div>
@@ -304,10 +337,27 @@ export function ReportModal({ profile, onClose }: ReportModalProps) {
         </div>
 
         {/* Footer */}
-        {/* Footer removed content - keeping empty if no other footer content is and needs to be visible or deleting if not needed */}
-        {/* Actually, let's just make the footer empty or remove the block if possible. The design usually has some spacing at the bottom. */}
-        <div className="p-8 border-t border-white/5 flex items-center justify-center shrink-0 bg-[#0A0D14]/80 backdrop-blur-md">
-          <p className="text-[10px] text-secondary font-bold uppercase tracking-[0.2em] opacity-20 italic">Worth Financial Intelligence</p>
+        <div className="px-6 py-6 md:p-8 border-t border-white/5 flex flex-col md:flex-row items-center gap-4 shrink-0 bg-[#0A0D14] z-20">
+          {!isLocked && report && (
+            <Button 
+              variant="outline" 
+              onClick={() => generateReport(true)}
+              disabled={loading}
+              className="w-full md:w-auto h-12 md:h-10 px-6 border-white/10 text-secondary hover:bg-white/5 font-black rounded-2xl md:rounded-xl text-xs flex items-center justify-center gap-2 uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95"
+            >
+              {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+              Regenerate Report
+            </Button>
+          )}
+          <Button 
+            onClick={onClose}
+            className="w-full md:w-auto h-12 md:h-10 px-8 bg-white/5 hover:bg-white/10 text-white font-black rounded-2xl md:rounded-xl text-xs uppercase tracking-widest transition-all flex items-center justify-center"
+          >
+            Close Report
+          </Button>
+          <div className="hidden md:flex flex-1 justify-end">
+            <p className="text-[10px] text-secondary font-bold uppercase tracking-[0.2em] opacity-20 italic whitespace-nowrap">Worth Financial Intelligence</p>
+          </div>
         </div>
       </motion.div>
     </div>
