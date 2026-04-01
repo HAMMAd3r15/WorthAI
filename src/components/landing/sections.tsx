@@ -64,7 +64,7 @@ export function Pricing() {
             viewport={{ once: true }}
             className="text-3xl md:text-5xl font-josefin font-bold mb-6 text-white tracking-tight"
           >
-            Completely Free. Forever.
+            Free to get started.
           </motion.h2>
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
@@ -73,8 +73,9 @@ export function Pricing() {
             transition={{ delay: 0.1 }}
             className="text-secondary text-lg font-josefin max-w-xl mx-auto"
           >
-            We believe financial clarity shouldn't have a price tag. 
-            Access every premium feature at no cost.
+            Create your account and start getting 
+            brutally honest financial advice today. 
+            No credit card required.
           </motion.p>
         </div>
 
