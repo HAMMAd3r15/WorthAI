@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Josefin_Sans } from "next/font/google";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/react";
 
 const josefin = Josefin_Sans({
   subsets: ["latin"],
@@ -13,9 +14,9 @@ export const metadata: Metadata = {
   icons: {
     icon: "/icon.svg",
   },
-  keywords: ["finance", "AI advisor", "budgeting", "financial health", "Worth AI"],
+  keywords: ["finance", "AI advisor", "budgeting", "financial health", "WorthAI"],
   openGraph: {
-    title: "Worth | Know your numbers. Own your future.",
+    title: "WorthAI | Know your numbers. Own your future.",
     description: "Meet your personal AI financial advisor.",
     type: "website",
   },
@@ -32,6 +33,7 @@ export default function RootLayout({
         <div className="noise-overlay" />
         <div className="mesh-gradient" />
         {children}
+        <Analytics />
       </body>
     </html>
   );

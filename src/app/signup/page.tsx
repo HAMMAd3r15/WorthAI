@@ -80,7 +80,7 @@ export default function SignupPage({
       {/* Header / Logo */}
       <div className="absolute top-0 left-0 p-8 z-20">
         <Link href="/" className="text-2xl font-bold tracking-tighter text-primary hover:opacity-80 transition-opacity">
-          WORTH
+          WorthAI
         </Link>
       </div>
 
@@ -183,7 +183,7 @@ export default function SignupPage({
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-40 bg-primary/10 blur-[80px] -z-10" />
                 
                 <div className="mb-8">
-                  <span className="text-xl font-bold tracking-tighter text-primary">WORTH</span>
+                  <span className="text-xl font-bold tracking-tighter text-primary">WorthAI</span>
                 </div>
 
                 <div className="relative mb-8 inline-flex items-center justify-center">

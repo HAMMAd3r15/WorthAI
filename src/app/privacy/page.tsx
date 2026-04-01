@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { ArrowLeft, Sparkles, Shield } from 'lucide-react'
+import { ArrowLeft, Shield } from 'lucide-react'
+import { WorthLogo } from '@/components/ui/worth-logo'
 
 export default function PrivacyPage() {
   return (
@@ -15,9 +16,11 @@ export default function PrivacyPage() {
         <div className="max-w-[1100px] mx-auto px-6 w-full">
           <Link href="/" className="group flex items-center gap-2 w-fit">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-105 transition-all">
-               <Sparkles className="w-5 h-5 text-black" />
+               <div className="w-5 h-5 flex items-center justify-center shrink-0 overflow-hidden">
+                 <WorthLogo className="w-5 h-5" />
+               </div>
             </div>
-            <span className="text-xl font-bold tracking-tighter text-white group-hover:text-primary transition-colors">WORTH</span>
+            <span className="text-xl font-bold tracking-tighter text-white group-hover:text-primary transition-colors">WorthAI</span>
           </Link>
         </div>
       </nav>
@@ -144,7 +147,7 @@ export default function PrivacyPage() {
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
               Back to home
            </Link>
-           <span className="text-[10px] text-secondary/30 uppercase tracking-[0.4em] font-bold">WORTH AI &nbsp; | &nbsp; 2026</span>
+           <span className="text-[10px] text-secondary/30 uppercase tracking-[0.4em] font-bold">WorthAI &nbsp; | &nbsp; 2026</span>
         </div>
       </main>
     </div>

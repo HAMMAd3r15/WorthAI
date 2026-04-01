@@ -6,7 +6,7 @@ export function Footer() {
       <div className="max-w-[1100px] mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-20 mb-20">
           <div className="col-span-1 md:col-span-2">
-            <span className="text-3xl font-josefin font-bold tracking-tighter text-primary uppercase mb-8 block">WORTH</span>
+            <span className="text-3xl font-josefin font-bold tracking-tighter text-primary uppercase mb-8 block">WorthAI</span>
             <p className="text-secondary text-lg leading-relaxed font-josefin max-w-sm">
               The context-aware AI financial advisor for the next generation. 
               Designed for clarity, built for wisdom.
@@ -29,7 +29,7 @@ export function Footer() {
           </div>
         </div>
         <div className="pt-12 border-t border-white/5 text-center text-[10px] text-secondary/30 uppercase tracking-[0.3em] font-bold">
-          © {new Date().getFullYear()} Worth AI Inc. &nbsp; | &nbsp; Own your future
+          © {new Date().getFullYear()} WorthAI Inc. &nbsp; | &nbsp; Own your future
         </div>
       </div>
     </footer>

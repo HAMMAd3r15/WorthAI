@@ -26,7 +26,7 @@ export default async function SettingsPage() {
                 <h3 className="text-2xl font-bold capitalize">{profile?.plan || 'Free'} Plan</h3>
                 <p className="text-secondary text-sm mt-1">
                   {profile?.plan === 'pro' 
-                    ? "You have unlimited access to Worth AI." 
+                    ? "You have unlimited access to WorthAI." 
                     : "Upgrade to Pro for unlimited questions and premium models."}
                 </p>
               </div>

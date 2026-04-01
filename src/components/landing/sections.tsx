@@ -54,8 +54,6 @@ export function Features() {
 }
 
 export function Pricing() {
-  const [isYearly, setIsYearly] = useState(false)
-
   return (
     <section className="py-32 bg-[#0A0D14] border-y border-white/5 relative z-10 overflow-hidden">
       <div className="max-w-[1100px] mx-auto px-6 relative z-10">
@@ -66,107 +64,64 @@ export function Pricing() {
             viewport={{ once: true }}
             className="text-3xl md:text-5xl font-josefin font-bold mb-6 text-white tracking-tight"
           >
-            Choose your path
+            Completely Free. Forever.
           </motion.h2>
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="text-secondary text-lg font-josefin mb-10"
+            className="text-secondary text-lg font-josefin max-w-xl mx-auto"
           >
-            Start for free or upgrade for unlimited wisdom.
+            We believe financial clarity shouldn't have a price tag. 
+            Access every premium feature at no cost.
           </motion.p>
-
-          {/* Pricing Toggle */}
-          <div className="flex items-center justify-center gap-4">
-            <span className={`text-sm font-bold tracking-widest uppercase transition-colors ${!isYearly ? 'text-primary' : 'text-secondary/50'}`}>Monthly</span>
-            <button 
-              onClick={() => setIsYearly(!isYearly)}
-              className="w-16 h-8 bg-white/5 rounded-full relative border border-white/10 p-1"
-            >
-              <motion.div 
-                animate={{ x: isYearly ? 32 : 0 }}
-                className="w-6 h-6 bg-primary rounded-full shadow-[0_0_10px_rgba(201,168,76,0.5)]"
-              />
-            </button>
-            <span className={`text-sm font-bold tracking-widest uppercase transition-colors ${isYearly ? 'text-primary' : 'text-secondary/50'}`}>Yearly</span>
-          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-4xl mx-auto">
-          {/* Free Plan */}
+        <div className="max-w-xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <Card className="flex flex-col h-full bg-[#11141D]/50 border-white/5 p-10 backdrop-blur-sm group hover:border-white/10 transition-all rounded-[32px]">
-              <div className="mb-10">
-                <h3 className="text-xl font-bold mb-4 text-white uppercase tracking-widest">Free</h3>
-                <div className="flex items-baseline gap-1 mb-6">
-                  <span className="text-5xl font-bold text-white font-josefin font-bold">$0</span>
-                  <span className="text-secondary font-josefin">{isYearly ? '/year' : '/month'}</span>
-                </div>
-                <p className="text-secondary font-josefin">Perfect for getting started.</p>
-              </div>
-              <ul className="space-y-6 mb-12 flex-1">
-                {[
-                  "5 AI questions per day",
-                  "Single income source",
-                  "Basic expense tracking",
-                  "Standard AI model access"
-                ].map((f, i) => (
-                  <li key={i} className="flex items-center gap-4 text-secondary font-josefin">
-                    <Check className="w-5 h-5 text-primary/50" />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/signup">
-                <Button variant="outline" className="w-full h-14 border-white/10 hover:border-white/30 text-white rounded-2xl">Get Started</Button>
-              </Link>
-            </Card>
-          </motion.div>
-
-          {/* Pro Plan */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-          >
-            <div className="relative h-full group">
-              <div className="absolute -inset-1 bg-gradient-to-b from-primary/30 to-transparent rounded-[32px] blur-lg opacity-0 group-hover:opacity-100 transition duration-1000" />
-              <Card className="relative flex flex-col h-full bg-[#11141D] border-primary/20 p-10 shadow-2xl scale-105 z-10 rounded-[32px]">
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.2em] text-black shadow-[0_0_20px_rgba(201,168,76,0.4)]">
-                  Most Popular
-                </div>
+            <div className="relative group">
+              <div className="absolute -inset-1 bg-gradient-to-b from-primary/30 to-transparent rounded-[40px] blur-lg opacity-40 group-hover:opacity-100 transition duration-1000" />
+              <Card className="relative flex flex-col items-center text-center h-full bg-[#11141D] border-primary/20 p-12 shadow-2xl z-10 rounded-[40px]">
                 <div className="mb-10">
-                  <h3 className="text-xl font-bold mb-4 text-primary uppercase tracking-widest">Pro</h3>
-                  <div className="flex items-baseline gap-1 mb-6">
-                    <span className="text-5xl font-bold text-white font-josefin font-bold">${isYearly ? '100' : '10'}</span>
-                    <span className="text-secondary font-josefin">{isYearly ? '/year' : '/month'}</span>
+                  <h3 className="text-xl font-bold mb-6 text-primary uppercase tracking-[0.3em]">Full Access</h3>
+                  <div className="flex items-baseline justify-center gap-1 mb-6">
+                    <span className="text-7xl font-bold text-white font-josefin">$0</span>
+                    <span className="text-secondary font-josefin text-xl">/forever</span>
                   </div>
-                  <p className="text-secondary font-josefin">Everything you need to master your finances.</p>
+                  <p className="text-secondary font-josefin italic opacity-80">No credit card. No subscriptions. No nonsense.</p>
                 </div>
-                <ul className="space-y-6 mb-12 flex-1">
+                
+                <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 mb-12 text-left">
                   {[
-                    "Unlimited AI questions",
-                    "Multiple income sources",
-                    "Full debt and savings tracking",
-                    "Priority response speed"
+                    "10 AI questions per day",
+                    "Unlimited income sources",
+                    "Full Monthly Health Audit",
+                    "Debt & savings tracking",
+                    "Honest, sharp AI advice",
+                    "Premium data security"
                   ].map((f, i) => (
-                    <li key={i} className="flex items-center gap-4 text-white font-josefin">
-                      <Check className="w-5 h-5 text-primary shadow-[0_0_10px_rgba(201,168,76,0.3)]" />
+                    <div key={i} className="flex items-center gap-4 text-white/90 font-josefin text-sm">
+                      <Check className="w-4 h-4 text-primary shrink-0" />
                       {f}
-                    </li>
+                    </div>
                   ))}
-                </ul>
-                <Link href="/signup?plan=pro">
-                  <Button className="w-full h-14 bg-primary text-black font-bold hover:scale-[1.02] transition-transform rounded-2xl">Go Pro</Button>
+                </div>
+
+                <Link href="/signup" className="w-full">
+                  <Button className="w-full h-16 bg-primary text-black font-black text-lg hover:scale-[1.02] active:scale-[0.98] transition-all rounded-3xl shadow-[0_0_30px_rgba(201,168,76,0.2)]">
+                    Create Your Account
+                  </Button>
                 </Link>
+
+                <p className="mt-8 text-[10px] text-secondary/40 font-bold uppercase tracking-widest">
+                  Trusted by users worldwide for financial intelligence
+                </p>
               </Card>
             </div>
           </motion.div>

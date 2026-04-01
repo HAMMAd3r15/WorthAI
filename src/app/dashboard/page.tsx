@@ -6,7 +6,8 @@ import { ChatInterface } from "@/components/dashboard/chat-interface"
 import { SettingsPanel } from "@/components/dashboard/settings-panel"
 import { FinanceModal } from "@/components/dashboard/finance-modal"
 import { useModals } from "@/components/providers/modal-provider"
-import { Settings, LogOut, Sparkles, CheckCircle2 } from "lucide-react"
+import { Settings, LogOut, CheckCircle2 } from "lucide-react"
+import { WorthLogo } from "@/components/ui/worth-logo"
 import { useRouter } from "next/navigation"
 import { AnimatePresence, motion } from "framer-motion"
 
@@ -61,11 +62,11 @@ export default function DashboardPage() {
     <div className="flex-1 h-full flex flex-col bg-[#0A0D14] overflow-hidden text-foreground">
       {/* Navbar */}
       <nav className="h-16 border-b border-white/5 flex items-center justify-between px-6 shrink-0 bg-[#0A0D14] z-50">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-[#C9A84C] flex items-center justify-center shadow-lg shadow-[#C9A84C]/20">
-            <Sparkles className="w-5 h-5 text-black" />
+        <div className="flex items-center gap-2 group cursor-pointer active:scale-95 transition-all">
+          <div className="w-8 h-8 rounded-lg overflow-hidden shadow-lg shadow-primary/20 group-hover:scale-105 transition-all">
+            <WorthLogo className="w-8 h-8" />
           </div>
-          <span className="text-xl font-black tracking-tighter text-white">WORTH</span>
+          <span className="text-xl font-bold tracking-tighter text-white group-hover:text-primary transition-colors">WorthAI</span>
         </div>
 
         <div className="flex items-center gap-4">

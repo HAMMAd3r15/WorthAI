@@ -1,0 +1,17 @@
+import React from "react"
+
+export function WorthLogo({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg 
+      width="180" 
+      height="180" 
+      viewBox="0 0 180 180" 
+      fill="none" 
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      <rect width="180" height="180" fill="#C9A84C"/>
+      <path d="M131.025 56.9047L165 30L111.959 151H109.825L90.492 116.445L71.0253 151H69.0253L15 30L49.8253 56.9047L72.3586 112.458L89.4244 83.8089C90.2058 83.8089 90.6439 83.8089 91.4253 83.8089L108.492 112.458L131.025 56.9047ZM91.0417 79.3195H90L77.9586 56.9047H103.025L91.0417 79.3195Z" fill="black"/>
+    </svg>
+  )
+}

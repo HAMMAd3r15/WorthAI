@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { X, RefreshCw, Loader2, Sparkles, CheckCircle2, AlertTriangle, ArrowRight, ShieldAlert, AlertCircle, Lock } from "lucide-react"
+import { X, RefreshCw, Loader2, CheckCircle2, ArrowRight, ShieldAlert, AlertCircle, Lock } from "lucide-react"
+import { WorthLogo } from "@/components/ui/worth-logo"
 import { Button } from "@/components/ui/button"
-import { useModals } from "@/components/providers/modal-provider"
 
 interface Report {
   score: number;
@@ -21,12 +21,10 @@ interface ReportModalProps {
 }
 
 export function ReportModal({ profile, onClose }: ReportModalProps) {
-  const { openPricing } = useModals()
   const [report, setReport] = useState<Report | null>(null)
   const [lastGenerated, setLastGenerated] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const isLocked = profile?.plan !== 'pro'
   const currentMonthYear = new Date().toLocaleString('default', { month: 'long', year: 'numeric' })
 
   // Close on Escape key
@@ -43,10 +41,6 @@ export function ReportModal({ profile, onClose }: ReportModalProps) {
     async function fetchReport() {
       setLoading(true)
       try {
-        if (isLocked) {
-          setLoading(false)
-          return
-        }
         const response = await fetch('/api/generate-report', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -117,7 +111,7 @@ export function ReportModal({ profile, onClose }: ReportModalProps) {
         {/* Header */}
         <div className="px-6 py-5 md:p-8 border-b border-white/5 flex items-center justify-between shrink-0 bg-[#0A0D14] z-20">
           <div>
-            <h2 className="text-lg md:text-xl font-bold tracking-tight bg-gradient-to-r from-white to-white/40 bg-clip-text text-transparent italic">Worth Report</h2>
+            <h2 className="text-lg md:text-xl font-bold tracking-tight bg-gradient-to-r from-white to-white/40 bg-clip-text text-transparent italic">WorthAI Report</h2>
             <p className="text-secondary/50 text-[10px] font-bold uppercase tracking-[0.2em] mt-0.5 md:mt-1">{currentMonthYear}</p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors text-secondary hover:text-white">
@@ -128,47 +122,7 @@ export function ReportModal({ profile, onClose }: ReportModalProps) {
         {/* Body */}
         <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar relative">
           <AnimatePresence mode="wait">
-            {isLocked ? (
-              <motion.div 
-                key="locked"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="absolute inset-0 z-50 flex flex-col items-center justify-center p-8 text-center bg-[#0A0D14]/40 backdrop-blur-xl"
-              >
-                <div className="w-20 h-20 rounded-3xl bg-[#C9A84C]/10 flex items-center justify-center border border-[#C9A84C]/20 shadow-2xl mb-6 relative">
-                  <Lock className="w-8 h-8 text-[#C9A84C]" />
-                  <div className="absolute inset-0 bg-[#C9A84C]/20 blur-2xl rounded-full" />
-                </div>
-                <h3 className="text-2xl font-black text-white mb-3 tracking-tight">Pro Feature</h3>
-                <p className="text-secondary text-base leading-relaxed mb-8 max-w-[280px]">
-                  Unlock your monthly AI financial health audit and personalized action plans with <span className="text-[#C9A84C] font-bold">Worth Pro</span>.
-                </p>
-                <Button 
-                  onClick={openPricing}
-                  className="bg-[#C9A84C] text-black hover:bg-[#B69742] font-black px-8 py-6 rounded-2xl text-base shadow-xl shadow-[#C9A84C]/20 transition-all hover:scale-105 active:scale-95"
-                >
-                  Upgrade to Pro
-                </Button>
-                
-                {/* Blurred fake content background */}
-                <div className="absolute inset-0 -z-10 opacity-10 pointer-events-none select-none">
-                  <div className="p-8 space-y-12 blur-md">
-                     <div className="flex flex-col items-center gap-4">
-                        <div className="w-32 h-32 rounded-full border-8 border-white/20" />
-                        <div className="h-4 w-48 bg-white/20 rounded" />
-                     </div>
-                     <div className="space-y-4">
-                        <div className="h-4 w-32 bg-[#10B981]/20 rounded" />
-                        <div className="h-24 w-full bg-white/5 rounded-3xl" />
-                     </div>
-                     <div className="space-y-4">
-                        <div className="h-4 w-32 bg-[#EF4444]/20 rounded" />
-                        <div className="h-24 w-full bg-white/5 rounded-3xl" />
-                     </div>
-                  </div>
-                </div>
-              </motion.div>
-            ) : loading && !report ? (
+            {loading && !report ? (
               <motion.div 
                 key="loading"
                 initial={{ opacity: 0 }}
@@ -177,8 +131,8 @@ export function ReportModal({ profile, onClose }: ReportModalProps) {
                 className="flex flex-col items-center justify-center py-20 text-center"
               >
                 <div className="relative mb-8">
-                  <div className="w-16 h-16 rounded-3xl bg-[#C9A84C]/10 flex items-center justify-center border border-[#C9A84C]/20 shadow-lg shadow-[#C9A84C]/5">
-                    <Sparkles className="w-8 h-8 text-[#C9A84C]" />
+                  <div className="w-16 h-16 rounded-3xl bg-[#C9A84C]/10 flex items-center justify-center border border-[#C9A84C]/20 shadow-lg shadow-[#C9A84C]/5 overflow-hidden">
+                    <WorthLogo className="w-8 h-8" />
                   </div>
                   <div className="absolute inset-0 bg-[#C9A84C]/20 blur-2xl rounded-full animate-pulse" />
                 </div>
@@ -310,7 +264,7 @@ export function ReportModal({ profile, onClose }: ReportModalProps) {
                   <div className="absolute top-0 right-0 p-8 opacity-5">
                     <ShieldAlert className="w-32 h-32 text-[#C9A84C]" />
                   </div>
-                  <h4 className="text-[11px] font-black uppercase tracking-[0.4em] text-[#C9A84C]">WORTH'S VERDICT</h4>
+                  <h4 className="text-[11px] font-black uppercase tracking-[0.4em] text-[#C9A84C]">WorthAI'S VERDICT</h4>
                   <p className="text-white text-lg font-bold italic leading-relaxed opacity-100 relative z-10">
                     "{report.verdict}"
                   </p>
@@ -338,7 +292,7 @@ export function ReportModal({ profile, onClose }: ReportModalProps) {
 
         {/* Footer */}
         <div className="px-6 py-6 md:p-8 border-t border-white/5 flex flex-col md:flex-row items-center gap-4 shrink-0 bg-[#0A0D14] z-20">
-          {!isLocked && report && (
+          {report && (
             <Button 
               variant="outline" 
               onClick={() => generateReport(true)}
@@ -356,12 +310,10 @@ export function ReportModal({ profile, onClose }: ReportModalProps) {
             Close Report
           </Button>
           <div className="hidden md:flex flex-1 justify-end">
-            <p className="text-[10px] text-secondary font-bold uppercase tracking-[0.2em] opacity-20 italic whitespace-nowrap">Worth Financial Intelligence</p>
+            <p className="text-[10px] text-secondary font-bold uppercase tracking-[0.2em] opacity-20 italic whitespace-nowrap">WorthAI Financial Intelligence</p>
           </div>
         </div>
       </motion.div>
     </div>
   )
 }
-
-

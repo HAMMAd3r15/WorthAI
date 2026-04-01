@@ -6,7 +6,28 @@ const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY
 })
 
+// IP-based rate limiting: 20 per IP per hour
+const rateLimitMap = new Map<string, { count: number, resetTime: number }>()
+
 export async function POST(req: Request) {
+  const ip = req.headers.get('x-forwarded-for') || 'unknown'
+  const now = Date.now()
+  const windowMs = 60 * 60 * 1000 // 1 hour
+  
+  // Clean old entries
+  const currentLimit = rateLimitMap.get(ip)
+  if (currentLimit && now > currentLimit.resetTime) {
+    rateLimitMap.delete(ip)
+  }
+
+  const limitData = rateLimitMap.get(ip) || { count: 0, resetTime: now + windowMs }
+  
+  if (limitData.count >= 20) {
+    return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 })
+  }
+  
+  rateLimitMap.set(ip, { count: limitData.count + 1, resetTime: limitData.resetTime })
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -35,12 +56,26 @@ export async function POST(req: Request) {
     }).eq('id', user.id)
   }
 
-  if (profile.plan === 'free' && questionsToday >= 5) {
-    return NextResponse.json({ error: "Daily limit reached. Upgrade to Pro for unlimited questions." }, { status: 429 })
+  if (questionsToday >= 10) {
+    return NextResponse.json({ error: "You've used all 10 of your questions for today. Come back tomorrow — Worth will be here." }, { status: 429 })
   }
 
-  // 3. Prepare AI Prompt
-  const { question } = await req.json()
+  // 3. Prepare AI Prompt & Validate Input
+  const body = await req.json()
+  const { question } = body
+
+  if (!question || typeof question !== 'string') {
+    return NextResponse.json({ error: "Invalid message" }, { status: 400 })
+  }
+
+  const trimmedQuestion = question.trim()
+  if (!trimmedQuestion) {
+    return NextResponse.json({ error: "Message cannot be empty" }, { status: 400 })
+  }
+
+  if (trimmedQuestion.length > 500) {
+    return NextResponse.json({ error: "Message too long. Maximum 500 characters." }, { status: 400 })
+  }
   
   const totalIncome = (financial.income_sources || []).reduce((a: number, c: any) => a + (c.amount || 0), 0)
   const totalExpenses = (financial.expenses || []).reduce((a: number, c: any) => a + (c.amount || 0), 0)
@@ -49,7 +84,8 @@ export async function POST(req: Request) {
   const expenseBreakdown = (financial.expenses || []).map((i: any) => `${i.label}: $${i.amount}`).join(', ')
   const debtsBreakdown = (financial.debts || []).map((i: any) => `${i.label}: $${i.amount}`).join(', ')
 
-  const systemPrompt = `You are Worth, a brutally honest but warm AI financial advisor. 
+  const systemPrompt = `You are Worth, a sharp, no-nonsense financial advisor. 
+You don't sugarcoat the truth. You use the user's real numbers to give objective, data-driven verdicts. 
 You know the user's complete financial situation already.
 
 CRITICAL EVALUATION FOR INVESTING:
@@ -89,7 +125,7 @@ Politely redirect them. Example: 'I'm Worth, your financial advisor. I'm only ab
 IMPORTANT RULES:
 - ALWAYS use the user's actual numbers, never generic advice
 - ALWAYS have some kind of verdict tag — never respond without one
-- Keep responses concise and clear — no fluff
+- Keep responses concise and sharp — no fluff or corporate speak
 - Verdict options: YES, NO, NOT YET, ACHIEVABLE, CHALLENGING, URGENT, ON TRACK, GOOD MOVE, RISKY
 
 User Financial Profile:
@@ -108,7 +144,9 @@ User Financial Profile:
       ],
       model: "llama-3.3-70b-versatile",
       temperature: 0.3,
+      max_tokens: 1024,
     })
+
 
     const rawAnswer = completion.choices[0].message.content || ""
     
@@ -141,7 +179,7 @@ User Financial Profile:
     // Save to history (async)
     supabase.from('chat_history').insert({
       user_id: user.id,
-      question,
+      question: trimmedQuestion,
       answer: rawAnswer
     }).then()
 

@@ -12,6 +12,18 @@ export async function POST(req: Request) {
 
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
+  // 1. Rate Limiting: 3 reports per user per day
+  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+  const { count: reportCount } = await supabase
+    .from('monthly_reports')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .gt('created_at', twentyFourHoursAgo)
+
+  if ((reportCount || 0) >= 3) {
+    return NextResponse.json({ error: "You've reached the maximum of 3 reports per day. Please try again tomorrow." }, { status: 429 })
+  }
+
   // 1. Check Pro Status
   const { data: profile } = await supabase.from('profiles').select('plan').eq('id', user.id).single()
   if (profile?.plan !== 'pro') {

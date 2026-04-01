@@ -2,10 +2,12 @@
 
 import { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Send, Sparkles, User, CheckCircle2, AlertCircle } from "lucide-react"
+import { Send, User, CheckCircle2, AlertCircle, Info, X } from "lucide-react"
+import { WorthLogo } from "@/components/ui/worth-logo"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
 import { MobileSummaryBar } from "./mobile-summary-bar"
+import { useData } from "@/components/providers/data-provider"
 
 type Message = {
   role: 'user' | 'assistant'
@@ -58,12 +60,26 @@ const formatDateLabel = (date: string) => {
 
 export function ChatInterface() {
   const supabase = createClient()
+  const { profile, refreshData } = useData()
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
+  const usage = profile?.questions_today ?? 0
+  const limit = 10
   const [loading, setLoading] = useState(false)
   const [historyLoading, setHistoryLoading] = useState(true)
   const [showWelcome, setShowWelcome] = useState(false)
+  const [showDisclaimer, setShowDisclaimer] = useState(true)
   const scrollRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const dismissed = localStorage.getItem('worthai-disclaimer-dismissed')
+    if (dismissed === 'true') setShowDisclaimer(false)
+  }, [])
+
+  const dismissDisclaimer = () => {
+    setShowDisclaimer(false)
+    localStorage.setItem('worthai-disclaimer-dismissed', 'true')
+  }
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -146,10 +162,10 @@ export function ChatInterface() {
       const data = await response.json()
 
       if (data.error) {
-        if (response.status === 429) {
+        if (data.status === 429) {
           setMessages(prev => [...prev, { 
             role: 'assistant', 
-            content: "You've reached your daily limit of 5 questions. Upgrade to **Worth Pro** for unlimited advice and premium features.",
+            content: `You've reached your daily limit of ${data.limit || 10} questions. Your limit resets at midnight.`,
             createdAt: new Date().toISOString()
           }])
         } else {
@@ -159,9 +175,12 @@ export function ChatInterface() {
             createdAt: new Date().toISOString()
           }])
         }
+        refreshData() // Sync limit
         setLoading(false)
         return
       } else {
+        refreshData() // Sync limit
+        
         setMessages(prev => [...prev, { 
           role: 'assistant', 
           content: data.reasoning,
@@ -191,6 +210,26 @@ export function ChatInterface() {
         ref={scrollRef} 
         className="flex-1 overflow-y-auto px-6 pt-8 pb-32 space-y-8 scroll-smooth"
       >
+        {showDisclaimer && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-4 bg-[#111827] border border-white/5 rounded-2xl flex items-start gap-3 relative group transition-all hover:border-white/10"
+          >
+            <Info className="w-4 h-4 text-secondary/60 shrink-0 mt-0.5" />
+            <p className="text-[13px] text-secondary leading-relaxed pr-8 font-medium">
+              Worth provides AI-generated financial guidance for informational purposes only. This is not professional financial advice.
+            </p>
+            <button 
+              onClick={dismissDisclaimer}
+              className="absolute right-4 top-4 p-1 hover:bg-white/10 rounded-full transition-colors"
+              title="Dismiss"
+            >
+              <X className="w-3.5 h-3.5 text-secondary/40 group-hover:text-secondary/60" />
+            </button>
+          </motion.div>
+        )}
+
         <AnimatePresence mode="popLayout">
           {showWelcome && (
             <motion.div 
@@ -225,10 +264,10 @@ export function ChatInterface() {
               animate={{ opacity: 1, y: 0 }}
               className="h-full flex flex-col items-center justify-center text-center max-w-lg mx-auto"
             >
-              <div className="w-16 h-16 bg-[#C9A84C]/10 rounded-full flex items-center justify-center mb-6 border border-[#C9A84C]/20">
-                <Sparkles className="w-8 h-8 text-[#C9A84C]" />
+              <div className="w-16 h-16 rounded-full overflow-hidden flex items-center justify-center mb-6 border border-[#C9A84C]/20 shadow-xl shadow-[#C9A84C]/5">
+                <WorthLogo className="w-full h-full" />
               </div>
-              <h2 className="text-2xl font-bold tracking-tight mb-4 text-white">Ask Worth anything.</h2>
+              <h2 className="text-2xl font-bold tracking-tight mb-4 text-white">Ask WorthAI anything.</h2>
               <p className="text-secondary text-sm mb-10 leading-relaxed font-medium">
                 I'm your brutally honest financial guide. I'll use your actual numbers to give you a real verdict.
               </p>
@@ -268,8 +307,8 @@ export function ChatInterface() {
                     className={`flex gap-4 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
                     {m.role === 'assistant' && (
-                      <div className="w-8 h-8 rounded-full bg-[#C9A84C] flex items-center justify-center shrink-0 shadow-lg shadow-[#C9A84C]/20">
-                        <Sparkles className="w-5 h-5 text-black" />
+                      <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center shrink-0 shadow-lg shadow-[#C9A84C]/20">
+                        <WorthLogo className="w-full h-full" />
                       </div>
                     )}
 
@@ -327,8 +366,8 @@ export function ChatInterface() {
           )}
           {loading && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-4 justify-start">
-              <div className="w-8 h-8 rounded-full bg-[#C9A84C] flex items-center justify-center shrink-0">
-                <Sparkles className="w-5 h-5 text-black animate-pulse" />
+              <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center shrink-0">
+                <WorthLogo className="w-full h-full animate-pulse" />
               </div>
               <div className="bg-white/5 p-4 rounded-2xl rounded-tl-none border border-white/5 flex gap-1.5">
                 {[0, 0.2, 0.4].map((delay) => (
@@ -348,6 +387,12 @@ export function ChatInterface() {
       {/* Input Bar */}
       <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#0A0D14] via-[#0A0D14]/90 to-transparent">
         <div className="max-w-4xl mx-auto relative group">
+          <div className="absolute -top-8 right-2 flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/5 backdrop-blur-sm transition-all group-focus-within:border-[#C9A84C]/20">
+            <div className="w-1 h-1 rounded-full bg-[#C9A84C] animate-pulse" />
+            <span className="text-[10px] font-bold text-secondary uppercase tracking-widest leading-none">
+              {usage} / {limit} questions today
+            </span>
+          </div>
           <input 
             type="text"
             value={input}
@@ -364,6 +409,9 @@ export function ChatInterface() {
             <Send className="w-4 h-4" />
           </button>
         </div>
+        <p className="text-[11px] text-secondary/50 text-center mt-3 font-medium">
+          AI guidance only · Not a licensed financial advisor
+        </p>
       </div>
     </div>
   )

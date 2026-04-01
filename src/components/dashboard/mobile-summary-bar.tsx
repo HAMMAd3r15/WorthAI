@@ -3,7 +3,7 @@
 import { useData } from "@/components/providers/data-provider"
 import { useModals } from "@/components/providers/modal-provider"
 import { motion } from "framer-motion"
-import { Sparkles } from "lucide-react"
+import { WorthLogo } from "@/components/ui/worth-logo"
 
 export function MobileSummaryBar() {
   const { financial } = useData()
@@ -45,7 +45,7 @@ export function MobileSummaryBar() {
             className={`flex-shrink-0 bg-[#111827] border border-white/5 rounded-2xl px-4 py-2 min-w-[120px] shadow-lg shadow-black/20 ${pill.isAction ? 'active:scale-95 transition-transform' : ''}`}
           >
             <p className="text-[10px] font-bold uppercase tracking-wider text-white/40 mb-1 flex items-center gap-1.5 transition-colors">
-              {pill.isAction && <Sparkles className="w-3 h-3 text-[#C9A84C]" />}
+              {pill.isAction && <WorthLogo className="w-3 h-3" />}
               {pill.label}
             </p>
             {pill.isAction ? (

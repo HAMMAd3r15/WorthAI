@@ -25,7 +25,7 @@ export default function LoginPage({
       {/* Header / Logo */}
       <div className="absolute top-0 left-0 p-8 z-20">
         <Link href="/" className="text-2xl font-josefin font-bold tracking-tighter text-primary hover:opacity-80 transition-opacity">
-          WORTH
+          WorthAI
         </Link>
       </div>
 

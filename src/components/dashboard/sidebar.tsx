@@ -8,12 +8,12 @@ import {
   TrendingUp, 
   ArrowUpRight, 
   ArrowDownRight, 
-  Sparkles,
   Lock,
   MinusCircle, 
   PlusCircle,
   CreditCard
 } from "lucide-react"
+import { WorthLogo } from "@/components/ui/worth-logo"
 import { useModals } from "@/components/providers/modal-provider"
 
 function Counter({ value, prefix = "$", className = "" }: { value: number, prefix?: string, className?: string }) {
@@ -45,7 +45,7 @@ export function Sidebar({ financial, profile }: { financial: any, profile: any }
   const cardClass = "p-5 bg-[#0D1117] border border-white/5 rounded-2xl hover:border-white/10 transition-all shadow-xl"
   const labelClass = "text-[10px] font-bold uppercase tracking-[0.15em] text-secondary mb-1.5 block opacity-60"
 
-  const questionsLeft = Math.max(0, 5 - (profile?.questions_today || 0))
+  const questionsLeft = Math.max(0, 10 - (profile?.questions_today || 0))
 
   return (
     <aside className="w-[260px] bg-[#0A0D14] border-r border-white/5 flex flex-col shrink-0 overflow-y-auto hidden md:flex h-full">
@@ -95,32 +95,18 @@ export function Sidebar({ financial, profile }: { financial: any, profile: any }
         <div className="px-1 mt-2">
           <button 
             onClick={openReport}
-            className={`w-full group relative overflow-hidden p-4 rounded-2xl border transition-all duration-300 ${
-              profile?.plan === 'pro' 
-                ? 'bg-[#C9A84C]/5 border-[#C9A84C]/20 hover:border-[#C9A84C]/40 hover:bg-[#C9A84C]/10 active:scale-[0.98]' 
-                : 'bg-white/5 border-white/5 opacity-50 hover:bg-white/10 active:scale-[0.98] group'
-            }`}
+            className="w-full group relative overflow-hidden p-4 rounded-2xl border transition-all duration-300 bg-[#C9A84C]/5 border-[#C9A84C]/20 hover:border-[#C9A84C]/40 hover:bg-[#C9A84C]/10 active:scale-[0.98]"
           >
             <div className="flex items-center gap-3 relative z-10">
-              <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${
-                profile?.plan === 'pro' ? 'bg-[#C9A84C]/10 text-[#C9A84C]' : 'bg-white/5 text-secondary/40'
-              }`}>
-                {profile?.plan === 'pro' ? <Sparkles className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center transition-colors bg-[#C9A84C]/10 text-[#C9A84C] overflow-hidden">
+                <WorthLogo className="w-5 h-5" />
               </div>
               <div className="text-left">
-                <span className={`text-[11px] font-black uppercase tracking-widest block transition-colors ${
-                  profile?.plan === 'pro' ? 'text-white' : 'text-secondary/60'
-                }`}>Report</span>
+                <span className="text-[11px] font-black uppercase tracking-widest block transition-colors text-white">Report</span>
                 <span className="text-[9px] text-secondary font-medium opacity-50 block uppercase tracking-tighter italic">
-                  {profile?.plan === 'pro' ? 'AI Health Audit' : 'Unlock with Pro'}
+                  AI Health Audit
                 </span>
               </div>
-              
-              {profile?.plan !== 'pro' && (
-                <div className="ml-auto px-1.5 py-0.5 bg-[#C9A84C] text-black text-[8px] font-black rounded uppercase flex items-center gap-1 shadow-[0_0_10px_rgba(201,168,76,0.2)]">
-                  PRO
-                </div>
-              )}
             </div>
           </button>
         </div>
@@ -153,20 +139,21 @@ export function Sidebar({ financial, profile }: { financial: any, profile: any }
           <div className="px-1">
              <span className={labelClass}>Usage</span>
              <div className="flex items-center gap-3 mt-4">
-                <div className="w-9 h-9 rounded-xl bg-[#C9A84C]/10 flex items-center justify-center border border-[#C9A84C]/20 shadow-lg shadow-[#C9A84C]/5">
-                  <Sparkles className="w-4 h-4 text-[#C9A84C]" />
+                <div className="w-9 h-9 rounded-xl bg-[#C9A84C]/10 flex items-center justify-center border border-[#C9A84C]/20 shadow-lg shadow-[#C9A84C]/5 overflow-hidden">
+                  <WorthLogo className="w-5 h-5" />
                 </div>
                 <div>
                   <p className="text-xs font-bold text-white tracking-tight">
-                    {profile?.plan === 'pro' ? 'Unlimited Advice' : `${questionsLeft} of 5 left`}
+                    {questionsLeft} of 10 left
                   </p>
                   <p className="text-[10px] text-secondary font-medium opacity-50 uppercase tracking-wider">
-                    {profile?.plan === 'pro' ? 'Pro Member' : 'Daily AI Questions'}
+                    Daily AI Questions
                   </p>
                 </div>
              </div>
           </div>
         </div>
+
       </div>
     </aside>
   )

@@ -35,7 +35,6 @@ export function OnboardingFlow() {
     fetchProfile()
   }, [supabase])
 
-  const isPro = profile?.plan === 'pro'
 
   const [income, setIncome] = useState<FinancialItem[]>([{ label: "", amount: 0 }])
   const [expenses, setExpenses] = useState<FinancialItem[]>([{ label: "", amount: 0 }])
@@ -215,17 +214,9 @@ export function OnboardingFlow() {
                 
                 {error && <p className="text-danger text-sm font-medium animate-in fade-in slide-in-from-top-1">{error}</p>}
 
-                {isPro ? (
-                  <button onClick={() => addItem(setIncome)} className={addBtnClass}>
-                    <Plus className="w-4 h-4" /> Add Another Source
-                  </button>
-                ) : (
-                  <p className="text-[11px] text-secondary/50 mt-2 flex items-center gap-1.5">
-                    Multiple income sources available on 
-                    <span className="text-white/40 font-medium">Pro</span>
-                    <Link href="/#pricing" className="text-[#C9A84C] hover:text-[#D4B96A] font-bold underline underline-offset-4 ml-1 transition-colors">Upgrade</Link>
-                  </p>
-                )}
+                <button onClick={() => addItem(setIncome)} className={addBtnClass}>
+                  <Plus className="w-4 h-4" /> Add Another Source
+                </button>
               </motion.div>
 
               <div className="flex justify-center">

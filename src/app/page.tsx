@@ -13,7 +13,7 @@ export default function Home() {
       <nav className="fixed top-0 w-full z-50 border-b border-white/5 bg-[#0A0D14]/80 backdrop-blur-xl">
         <div className="max-w-[1100px] mx-auto px-6 h-20 flex items-center justify-between">
           <Link href="/" className="text-2xl font-josefin font-bold tracking-tighter text-primary hover:opacity-80 transition-opacity">
-            WORTH
+            WorthAI
           </Link>
           
           <div className="hidden md:flex items-center gap-12">

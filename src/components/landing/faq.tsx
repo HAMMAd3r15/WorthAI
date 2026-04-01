@@ -22,12 +22,12 @@ const faqs = [
     answer: "Yes anytime. Life changes and your profile should too. Update your income, add a new expense, or clear a debt — Worth will factor in your latest numbers automatically."
   },
   {
-    question: "Is the free plan actually useful?",
-    answer: "Yes. 5 questions per day is enough to make real financial decisions. The Pro plan is for people who want unlimited access and more detailed advice for complex financial situations."
+    question: "Is WorthAI actually free?",
+    answer: "Yes. Every feature, from the Monthly Health Audit to the sharp AI advisor, is now completely free. We've removed all paid plans because we believe financial clarity should be accessible to everyone."
   },
   {
-    question: "What if I want to cancel my subscription?",
-    answer: "Cancel anytime with one click from your settings page. No hidden fees, no cancellation calls, no drama."
+    question: "Are there any hidden costs or ads?",
+    answer: "None. No ads, no hidden fees, and no credit card required. You get 10 AI questions every single day, resetting at midnight, along with unlimited income and expense tracking."
   }
 ]
 

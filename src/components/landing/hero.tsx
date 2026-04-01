@@ -81,8 +81,8 @@ export function Hero() {
               transition={{ duration: 0.8 }}
               className="max-w-xl mx-auto text-[18px] text-secondary mb-12 leading-relaxed font-josefin"
             >
-              A luxury interface for your financial clarity. 
-              Worth is the first context-aware advisor that understands 
+              The premium financial advisor, now free for everyone. 
+              WorthAI is the first context-aware guide that understands 
               the weight of your decisions.
             </motion.p>
             
@@ -119,7 +119,7 @@ export function Hero() {
               <div className="px-6 py-4 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                  <span className="text-[10px] font-bold tracking-widest uppercase text-secondary">Worth Engine v2.0</span>
+                  <span className="text-[10px] font-bold tracking-widest uppercase text-secondary">WorthAI Engine v2.0</span>
                 </div>
                 <div className="flex gap-1.5">
                   <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
