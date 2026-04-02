@@ -38,7 +38,26 @@ export function DataProvider({
       ])
       
       if (pRes.data) {
-        setProfile({ ...pRes.data, email: user.email })
+        const p = pRes.data
+        const today = new Date().toISOString().split('T')[0]
+        const lastReset = p.last_reset_date 
+          ? new Date(p.last_reset_date).toISOString().split('T')[0]
+          : null
+
+        if (lastReset !== today) {
+          // It's a new day — reset the counter
+          await supabase
+            .from('profiles')
+            .update({ 
+              questions_today: 0, 
+              last_reset_date: today 
+            })
+            .eq('id', user.id)
+          
+          p.questions_today = 0
+          p.last_reset_date = today
+        }
+        setProfile({ ...p, email: user.email })
       }
       if (fRes.data) {
         setFinancial(fRes.data)

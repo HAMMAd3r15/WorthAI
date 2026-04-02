@@ -23,7 +23,26 @@ export default async function DashboardLayout({
     redirect('/onboarding')
   }
 
-  const initialProfile = { ...profileRes.data, email: user.email }
+  const profile = profileRes.data
+  const today = new Date().toISOString().split('T')[0]
+  const lastReset = profile.last_reset_date 
+    ? new Date(profile.last_reset_date).toISOString().split('T')[0]
+    : null
+
+  if (lastReset !== today) {
+    await supabase
+      .from('profiles')
+      .update({ 
+        questions_today: 0, 
+        last_reset_date: today 
+      })
+      .eq('id', user.id)
+    
+    profile.questions_today = 0
+    profile.last_reset_date = today
+  }
+
+  const initialProfile = { ...profile, email: user.email }
 
   return (
     <ClientLayout initialFinancial={financialRes.data} initialProfile={initialProfile}>

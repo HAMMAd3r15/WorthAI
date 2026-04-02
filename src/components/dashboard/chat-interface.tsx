@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Send, User, CheckCircle2, AlertCircle, Info, X } from "lucide-react"
+import { Send, User, CheckCircle2, AlertCircle, Info, X, Clock } from "lucide-react"
 import { WorthLogo } from "@/components/ui/worth-logo"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
@@ -70,6 +70,24 @@ export function ChatInterface() {
   const [showWelcome, setShowWelcome] = useState(false)
   const [showDisclaimer, setShowDisclaimer] = useState(true)
   const scrollRef = useRef<HTMLDivElement>(null)
+  const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0 })
+
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      const now = new Date()
+      const nextMidnightUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1))
+      const diff = nextMidnightUTC.getTime() - now.getTime()
+      
+      const hours = Math.floor(diff / (1000 * 60 * 60))
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+      
+      setTimeLeft({ hours, minutes })
+    }
+
+    calculateTimeLeft()
+    const timer = setInterval(calculateTimeLeft, 60000)
+    return () => clearInterval(timer)
+  }, [])
 
   useEffect(() => {
     const dismissed = localStorage.getItem('worthai-disclaimer-dismissed')
@@ -384,34 +402,59 @@ export function ChatInterface() {
         </AnimatePresence>
       </div>
 
-      {/* Input Bar */}
+      {/* Input Bar or Limit Reached Card */}
       <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#0A0D14] via-[#0A0D14]/90 to-transparent">
         <div className="max-w-4xl mx-auto relative group">
-          <div className="absolute -top-8 right-2 flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/5 backdrop-blur-sm transition-all group-focus-within:border-[#C9A84C]/20">
-            <div className="w-1 h-1 rounded-full bg-[#C9A84C] animate-pulse" />
-            <span className="text-[10px] font-bold text-secondary uppercase tracking-widest leading-none">
-              {usage} / {limit} questions today
-            </span>
-          </div>
-          <input 
-            type="text"
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleSend(input)}
-            placeholder="E.g. Can I afford a Tesla Model 3 this year?"
-            className="w-full bg-[#111827] border border-white/10 p-6 pr-16 text-sm text-foreground focus:border-[#C9A84C]/50 outline-none transition-all rounded-2xl shadow-2xl shadow-black/50"
-          />
-          <button 
-            onClick={() => handleSend(input)}
-            disabled={!input.trim() || loading}
-            className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-[#C9A84C] text-black rounded-xl flex items-center justify-center hover:bg-[#C9A84C]/90 transition-all disabled:opacity-50 disabled:grayscale"
-          >
-            <Send className="w-4 h-4" />
-          </button>
+          {usage < limit ? (
+            <>
+              <div className="absolute -top-8 right-2 flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/5 backdrop-blur-sm transition-all group-focus-within:border-[#C9A84C]/20">
+                <div className="w-1 h-1 rounded-full bg-[#C9A84C] animate-pulse" />
+                <span className="text-[10px] font-bold text-secondary uppercase tracking-widest leading-none">
+                  {usage} / {limit} questions today
+                </span>
+              </div>
+              <input 
+                type="text"
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleSend(input)}
+                placeholder="E.g. Can I afford a Tesla Model 3 this year?"
+                className="w-full bg-[#111827] border border-white/10 p-6 pr-16 text-sm text-foreground focus:border-[#C9A84C]/50 outline-none transition-all rounded-2xl shadow-2xl shadow-black/50"
+              />
+              <button 
+                onClick={() => handleSend(input)}
+                disabled={!input.trim() || loading}
+                className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-[#C9A84C] text-black rounded-xl flex items-center justify-center hover:bg-[#C9A84C]/90 transition-all disabled:opacity-50 disabled:grayscale"
+              >
+                <Send className="w-4 h-4" />
+              </button>
+              <p className="text-[11px] text-secondary/50 text-center mt-3 font-medium">
+                AI guidance only · Not a licensed financial advisor
+              </p>
+            </>
+          ) : (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-[#111827] border border-white/10 rounded-3xl p-8 flex flex-col items-center text-center shadow-2xl shadow-black"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-[#C9A84C]/10 flex items-center justify-center mb-6">
+                <Clock className="w-6 h-6 text-[#C9A84C]" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">
+                You&apos;ve used all {limit} questions for today
+              </h3>
+              <p className="text-secondary text-sm mb-6 max-w-sm">
+                Come back tomorrow — Worth resets at midnight
+              </p>
+              <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/5">
+                <span className="text-secondary/40 text-[10px] font-bold uppercase tracking-widest">
+                  Resets in {timeLeft.hours} hours {timeLeft.minutes} minutes
+                </span>
+              </div>
+            </motion.div>
+          )}
         </div>
-        <p className="text-[11px] text-secondary/50 text-center mt-3 font-medium">
-          AI guidance only · Not a licensed financial advisor
-        </p>
       </div>
     </div>
   )
