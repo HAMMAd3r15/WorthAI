@@ -121,6 +121,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "You've used all 10 of your questions for today. Come back tomorrow — Worth resets at midnight." }, { status: 429 })
   }
 
+  // 5. Daily Increment - Burns a question immediately regardless of what happens next
+  await supabase
+    .from('profiles')
+    .update({ questions_today: profile.questions_today + 1 })
+    .eq('id', user.id)
+
   // 5. Input Validation & Sanitization
   const body = await req.json()
   let { question } = body
@@ -263,10 +269,6 @@ User Financial Profile:
       answer: rawAnswer
     }).then()
 
-    // Increment question count
-    await supabase.from('profiles').update({ 
-      questions_today: profile.questions_today + 1 
-    }).eq('id', user.id)
 
     return NextResponse.json({
       verdict,
