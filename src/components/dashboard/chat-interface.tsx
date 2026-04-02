@@ -424,16 +424,6 @@ export function ChatInterface() {
         <div className="max-w-4xl mx-auto">
           {usage < limit ? (
             <>
-              {/* Questions Remaining Indicator */}
-              <div className="flex justify-end mb-3">
-                <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/5 backdrop-blur-sm shadow-lg">
-                  <div className="w-1 h-1 rounded-full bg-[#C9A84C] animate-pulse" />
-                  <span className="text-[10px] font-bold text-secondary uppercase tracking-[0.1em] leading-none">
-                    {usage} / {limit} questions today
-                  </span>
-                </div>
-              </div>
-
               {/* Input Area */}
               <div className="relative group">
                 <textarea 
