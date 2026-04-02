@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Send, User, CheckCircle2, AlertCircle, Info, X, Clock } from "lucide-react"
+import { Send, User, CheckCircle2, AlertCircle, Info, X, Clock, ChevronDown } from "lucide-react"
 import { WorthLogo } from "@/components/ui/worth-logo"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
@@ -73,6 +73,21 @@ export function ChatInterface() {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0 })
 
+  // Typing animation for placeholder
+  const placeholders = [
+    "E.g. Can I afford a Tesla Model 3 this year?",
+    "E.g. How should I invest $10k for retirement?",
+    "E.g. What's the best way to save for a house?",
+    "E.g. Should I pay off debt or invest extra cash?",
+    "E.g. How much should my emergency fund be?"
+  ]
+  const [placeholder, setPlaceholder] = useState("")
+  const [placeholderIndex, setPlaceholderIndex] = useState(0)
+  const [charIndex, setCharIndex] = useState(0)
+  const [isTyping, setIsTyping] = useState(true)
+  const [showScrollButton, setShowScrollButton] = useState(false)
+  const [hasUnreadMessages, setHasUnreadMessages] = useState(false)
+
   useEffect(() => {
     const calculateTimeLeft = () => {
       const now = new Date()
@@ -98,6 +113,36 @@ export function ChatInterface() {
       textareaRef.current.style.height = `${newHeight}px`
     }
   }, [input])
+
+  // Typewriter effect
+  useEffect(() => {
+    if (input.length > 0) {
+      setPlaceholder("")
+      return
+    }
+
+    const currentString = placeholders[placeholderIndex]
+    const timeout = setTimeout(() => {
+      if (isTyping) {
+        if (charIndex < currentString.length) {
+          setPlaceholder(prev => prev + currentString[charIndex])
+          setCharIndex(prev => prev + 1)
+        } else {
+          setTimeout(() => setIsTyping(false), 1200)
+        }
+      } else {
+        if (charIndex > 0) {
+          setPlaceholder(prev => prev.slice(0, -1))
+          setCharIndex(prev => prev - 1)
+        } else {
+          setPlaceholderIndex((placeholderIndex + 1) % placeholders.length)
+          setIsTyping(true)
+        }
+      }
+    }, isTyping ? 35 : 25)
+
+    return () => clearTimeout(timeout)
+  }, [charIndex, isTyping, placeholderIndex, input, placeholders])
 
   useEffect(() => {
     const dismissed = localStorage.getItem('worthai-disclaimer-dismissed')
@@ -168,9 +213,45 @@ export function ChatInterface() {
 
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+      const { scrollTop, scrollHeight, clientHeight } = scrollRef.current
+      const distanceFromBottom = scrollHeight - scrollTop - clientHeight
+      
+      // Auto-scroll only if already near bottom or it's the very first message
+      if (distanceFromBottom < 150 || messages.length <= 2) {
+        scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+        setShowScrollButton(false)
+        setHasUnreadMessages(false)
+      } else {
+        // If new message arrives and user is scrolled up, show the badge
+        setHasUnreadMessages(true)
+        setShowScrollButton(true)
+      }
     }
   }, [messages, historyLoading])
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    if (!scrollRef.current) return
+    const { scrollTop, scrollHeight, clientHeight } = scrollRef.current
+    
+    const distanceFromBottom = scrollHeight - scrollTop - clientHeight
+    const isNearBottom = distanceFromBottom < 100
+    
+    setShowScrollButton(!isNearBottom)
+    
+    // Reset unread flag if reached bottom
+    if (isNearBottom) {
+      setHasUnreadMessages(false)
+    }
+  }
+
+  const scrollToBottom = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior: 'smooth'
+      })
+    }
+  }
 
   const handleSend = async (text: string) => {
     if (!text.trim() || loading) return
@@ -243,6 +324,7 @@ export function ChatInterface() {
 
       <div 
         ref={scrollRef} 
+        onScroll={handleScroll}
         className="flex-1 overflow-y-auto px-6 pt-8 pb-40 space-y-8 scroll-smooth"
       >
         {showDisclaimer && (
@@ -419,13 +501,39 @@ export function ChatInterface() {
         </AnimatePresence>
       </div>
 
+      {/* Scroll to Bottom Button - Fixed Position Layer */}
+      <AnimatePresence>
+        {showScrollButton && (
+          <motion.div
+            key="scroll-to-bottom-button"
+            initial={{ opacity: 0, y: 20, scale: 0.8 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.8 }}
+            className="absolute bottom-40 right-6 z-[999]"
+          >
+            <button
+              onClick={scrollToBottom}
+              className="w-[44px] h-[44px] bg-[#111827] border-[1px] border-[#C9A84C]/30 rounded-full flex items-center justify-center text-[#C9A84C] shadow-[0_8px_32px_rgba(0,0,0,0.6)] hover:bg-[#1a2333] hover:border-[#C9A84C]/80 hover:scale-[1.05] active:scale-[0.98] transition-all group relative"
+              title="Scroll to bottom"
+            >
+              <ChevronDown className="w-5 h-5 group-hover:translate-y-0.5 transition-transform" />
+              
+              {/* Unread Message Indicator Dot */}
+              {hasUnreadMessages && (
+                <span className="absolute top-0 right-0 w-3 h-3 bg-[#C9A84C] rounded-full border-2 border-[#111827] shadow-lg animate-bounce" />
+              )}
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Input Bar or Limit Reached Card */}
       <div className="border-t border-[#C9A84C]/10 bg-[#0A0D14] p-5 px-6 shrink-0 z-50">
         <div className="max-w-4xl mx-auto">
           {usage < limit ? (
             <>
               {/* Input Area */}
-              <div className="relative group">
+              <div className="relative group bg-[#111827]/80 backdrop-blur-xl border border-white/5 rounded-[24px] shadow-2xl transition-all focus-within:border-[#C9A84C]/40 focus-within:shadow-[0_0_20px_rgba(201,168,76,0.1)] overflow-hidden flex items-center">
                 <textarea 
                   ref={textareaRef}
                   value={input}
@@ -436,19 +544,28 @@ export function ChatInterface() {
                       handleSend(input)
                     }
                   }}
-                  placeholder="E.g. Can I afford a Tesla Model 3 this year?"
+                  placeholder={placeholder}
                   rows={1}
-                  className="w-full bg-[#111827] border border-white/10 p-4 pr-16 text-[15px] leading-relaxed text-foreground placeholder-[#4B5563] focus:border-[#C9A84C]/40 outline-none transition-all rounded-2xl shadow-2xl resize-none min-h-[52px] max-h-[120px] scrollbar-hide"
+                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                  className="w-full bg-transparent border-none p-4 pr-16 text-[15px] leading-relaxed text-foreground placeholder-[#4B5563]/60 outline-none resize-none min-h-[56px] max-h-[120px] scrollbar-hide relative z-10"
                 />
                 
                 <motion.button 
-                  whileHover={{ backgroundColor: "#D4B96A" }}
+                  whileHover={{ 
+                    backgroundColor: "#D4B96A",
+                    boxShadow: "0 0 15px rgba(201, 168, 76, 0.4)" 
+                  }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => handleSend(input)}
                   disabled={!input.trim() || loading}
-                  className="absolute right-2.5 bottom-2.5 w-11 h-11 bg-[#C9A84C] text-[#0A0D14] rounded-full flex items-center justify-center transition-all disabled:opacity-50 disabled:grayscale shadow-lg shadow-[#C9A84C]/10"
+                  className="absolute right-2 w-10 h-10 bg-[#C9A84C] text-[#0A0D14] rounded-full flex items-center justify-center transition-all disabled:opacity-50 disabled:grayscale shadow-lg shadow-[#C9A84C]/10 z-20 group-hover:shadow-[#C9A84C]/20 overflow-hidden"
                 >
-                  <Send className="w-4.5 h-4.5" />
+                  <Send className="w-4 h-4 relative z-10" />
+                  <motion.div 
+                    animate={{ x: ["-100%", "200%"] }}
+                    transition={{ repeat: Infinity, duration: 2, ease: "linear", repeatDelay: 1 }}
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-20 pointer-events-none"
+                  />
                 </motion.button>
               </div>
 
