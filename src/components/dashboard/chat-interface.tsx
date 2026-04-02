@@ -70,6 +70,7 @@ export function ChatInterface() {
   const [showWelcome, setShowWelcome] = useState(false)
   const [showDisclaimer, setShowDisclaimer] = useState(true)
   const scrollRef = useRef<HTMLDivElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0 })
 
   useEffect(() => {
@@ -88,6 +89,15 @@ export function ChatInterface() {
     const timer = setInterval(calculateTimeLeft, 60000)
     return () => clearInterval(timer)
   }, [])
+
+  // Auto-expand textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto'
+      const newHeight = Math.min(textareaRef.current.scrollHeight, 120)
+      textareaRef.current.style.height = `${newHeight}px`
+    }
+  }, [input])
 
   useEffect(() => {
     const dismissed = localStorage.getItem('worthai-disclaimer-dismissed')
@@ -179,6 +189,13 @@ export function ChatInterface() {
 
       const data = await response.json()
 
+      if (data.redirect) {
+        // Store message for onboarding page to show as toast
+        sessionStorage.setItem('onboarding_toast', data.error || "Please complete your financial profile first")
+        window.location.href = data.redirect
+        return
+      }
+
       if (data.error) {
         if (data.status === 429) {
           setMessages(prev => [...prev, { 
@@ -226,7 +243,7 @@ export function ChatInterface() {
 
       <div 
         ref={scrollRef} 
-        className="flex-1 overflow-y-auto px-6 pt-8 pb-32 space-y-8 scroll-smooth"
+        className="flex-1 overflow-y-auto px-6 pt-8 pb-40 space-y-8 scroll-smooth"
       >
         {showDisclaimer && (
           <motion.div 
@@ -403,32 +420,50 @@ export function ChatInterface() {
       </div>
 
       {/* Input Bar or Limit Reached Card */}
-      <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#0A0D14] via-[#0A0D14]/90 to-transparent">
-        <div className="max-w-4xl mx-auto relative group">
+      <div className="border-t border-[#C9A84C]/10 bg-[#0A0D14] p-5 px-6 shrink-0 z-50">
+        <div className="max-w-4xl mx-auto">
           {usage < limit ? (
             <>
-              <div className="absolute -top-8 right-2 flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/5 backdrop-blur-sm transition-all group-focus-within:border-[#C9A84C]/20">
-                <div className="w-1 h-1 rounded-full bg-[#C9A84C] animate-pulse" />
-                <span className="text-[10px] font-bold text-secondary uppercase tracking-widest leading-none">
-                  {usage} / {limit} questions today
-                </span>
+              {/* Questions Remaining Indicator */}
+              <div className="flex justify-end mb-3">
+                <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/5 backdrop-blur-sm shadow-lg">
+                  <div className="w-1 h-1 rounded-full bg-[#C9A84C] animate-pulse" />
+                  <span className="text-[10px] font-bold text-secondary uppercase tracking-[0.1em] leading-none">
+                    {usage} / {limit} questions today
+                  </span>
+                </div>
               </div>
-              <input 
-                type="text"
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleSend(input)}
-                placeholder="E.g. Can I afford a Tesla Model 3 this year?"
-                className="w-full bg-[#111827] border border-white/10 p-6 pr-16 text-sm text-foreground focus:border-[#C9A84C]/50 outline-none transition-all rounded-2xl shadow-2xl shadow-black/50"
-              />
-              <button 
-                onClick={() => handleSend(input)}
-                disabled={!input.trim() || loading}
-                className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-[#C9A84C] text-black rounded-xl flex items-center justify-center hover:bg-[#C9A84C]/90 transition-all disabled:opacity-50 disabled:grayscale"
-              >
-                <Send className="w-4 h-4" />
-              </button>
-              <p className="text-[11px] text-secondary/50 text-center mt-3 font-medium">
+
+              {/* Input Area */}
+              <div className="relative group">
+                <textarea 
+                  ref={textareaRef}
+                  value={input}
+                  onChange={e => setInput(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault()
+                      handleSend(input)
+                    }
+                  }}
+                  placeholder="E.g. Can I afford a Tesla Model 3 this year?"
+                  rows={1}
+                  className="w-full bg-[#111827] border border-white/10 p-4 pr-16 text-[15px] leading-relaxed text-foreground placeholder-[#4B5563] focus:border-[#C9A84C]/40 outline-none transition-all rounded-2xl shadow-2xl resize-none min-h-[52px] max-h-[120px] scrollbar-hide"
+                />
+                
+                <motion.button 
+                  whileHover={{ backgroundColor: "#D4B96A" }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => handleSend(input)}
+                  disabled={!input.trim() || loading}
+                  className="absolute right-2.5 bottom-2.5 w-11 h-11 bg-[#C9A84C] text-[#0A0D14] rounded-full flex items-center justify-center transition-all disabled:opacity-50 disabled:grayscale shadow-lg shadow-[#C9A84C]/10"
+                >
+                  <Send className="w-4.5 h-4.5" />
+                </motion.button>
+              </div>
+
+              {/* Disclaimer */}
+              <p className="text-[11px] text-[#374151] text-center mt-2.5 font-medium tracking-tight">
                 AI guidance only · Not a licensed financial advisor
               </p>
             </>
@@ -436,19 +471,20 @@ export function ChatInterface() {
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="bg-[#111827] border border-white/10 rounded-3xl p-8 flex flex-col items-center text-center shadow-2xl shadow-black"
+              className="bg-[#111827] border border-[#C9A84C]/10 rounded-3xl p-8 flex flex-col items-center text-center shadow-2xl shadow-black relative overflow-hidden group"
             >
-              <div className="w-12 h-12 rounded-2xl bg-[#C9A84C]/10 flex items-center justify-center mb-6">
+              <div className="absolute inset-0 bg-[#C9A84C]/[0.02] pointer-events-none" />
+              <div className="w-12 h-12 rounded-2xl bg-[#C9A84C]/10 flex items-center justify-center mb-6 relative z-10 border border-[#C9A84C]/10">
                 <Clock className="w-6 h-6 text-[#C9A84C]" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">
+              <h3 className="text-xl font-bold text-white mb-2 relative z-10">
                 You&apos;ve used all {limit} questions for today
               </h3>
-              <p className="text-secondary text-sm mb-6 max-w-sm">
+              <p className="text-secondary text-sm mb-6 max-w-sm relative z-10 opacity-60">
                 Come back tomorrow — Worth resets at midnight
               </p>
-              <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/5">
-                <span className="text-secondary/40 text-[10px] font-bold uppercase tracking-widest">
+              <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/5 relative z-10 shadow-xl">
+                <span className="text-secondary/60 text-[10px] font-bold uppercase tracking-widest">
                   Resets in {timeLeft.hours} hours {timeLeft.minutes} minutes
                 </span>
               </div>

@@ -89,15 +89,11 @@ export async function POST(req: Request) {
   }
   userRateLimitMap.set(user.id, { count: currentUserLimit.count + 1, resetTime: currentUserLimit.resetTime })
 
-  // 3. Get Profile & Financial Data
+  // 3. Get Profile 
   const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
-  const { data: financial } = await supabase.from('financial_profiles').select('*').eq('user_id', user.id).single()
+  if (!profile) return NextResponse.json({ error: "Profile not found." }, { status: 404 })
 
-  if (!profile || !financial) {
-    return NextResponse.json({ error: "Profile not found. Please complete onboarding." }, { status: 404 })
-  }
-
-  // 4. Daily Limit Check
+  // 4. Daily Limit Check & Reset
   const today = new Date().toISOString().split('T')[0]
   const lastReset = profile.last_reset_date 
     ? new Date(profile.last_reset_date).toISOString().split('T')[0]
@@ -121,13 +117,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "You've used all 10 of your questions for today. Come back tomorrow — Worth resets at midnight." }, { status: 429 })
   }
 
-  // 5. Daily Increment - Burns a question immediately regardless of what happens next
+  // 5. Daily Increment - Burns a question immediately as requested
   await supabase
     .from('profiles')
     .update({ questions_today: profile.questions_today + 1 })
     .eq('id', user.id)
 
-  // 5. Input Validation & Sanitization
+  // 6. Get Financial Profile (handle missing gracefully)
+  const { data: financial } = await supabase.from('financial_profiles').select('*').eq('user_id', user.id).single()
+  if (!financial) {
+    return NextResponse.json({ 
+      redirect: '/onboarding', 
+      error: "Please complete your financial profile first" 
+    }, { status: 403 })
+  }
+
+  // 7. Input Validation & Sanitization
   const body = await req.json()
   let { question } = body
 
