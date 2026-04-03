@@ -472,9 +472,9 @@ User Financial Profile:
     let reasoning = explanationMatch ? explanationMatch[1].trim() : ""
 
     if (!reasoning && !verdictMatch) {
-      reasoning = rawAnswer;
+      reasoning = rawAnswer.replace(/ACTION PLAN:\s*[\s\S]*/i, '').trim();
     } else if (!reasoning) {
-      reasoning = rawAnswer.replace(/VERDICT:\s*.*?\n/i, '').trim();
+      reasoning = rawAnswer.replace(/VERDICT:\s*.*?\n/i, '').replace(/ACTION PLAN:\s*[\s\S]*/i, '').trim();
     }
     
     const actionPlanMatch = rawAnswer.match(/ACTION PLAN:\s*([\s\S]*)/i)
