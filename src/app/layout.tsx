@@ -29,6 +29,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${josefin.variable} h-full dark`}>
+      <head>
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5699722362845664"
+          crossOrigin="anonymous"
+        ></script>
+      </head>
       <body className="bg-background text-foreground font-josefin min-h-screen flex flex-col selection:bg-primary/30">
         <div className="noise-overlay" />
         <div className="mesh-gradient" />
