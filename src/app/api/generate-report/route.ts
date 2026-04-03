@@ -12,41 +12,48 @@ export async function POST(req: Request) {
 
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-  // 1. Rate Limiting: 3 reports per user per day
-  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-  const { count: reportCount } = await supabase
-    .from('monthly_reports')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', user.id)
-    .gt('created_at', twentyFourHoursAgo)
+  // Parse body early so we know if regenerate is requested
+  const { regenerate } = await req.json()
 
-  if ((reportCount || 0) >= 3) {
+  // Run rate limit check, profile fetch, and existing report check IN PARALLEL
+  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+  const currentMonth = new Date().toLocaleString('default', { month: 'long', year: 'numeric' })
+
+  const [rateLimitResult, existingReportResult, financialResult] = await Promise.all([
+    // Rate limit: 3 reports per day
+    supabase
+      .from('monthly_reports')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .gt('created_at', twentyFourHoursAgo),
+    // Existing report for this month
+    supabase
+      .from('monthly_reports')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('report_month', currentMonth)
+      .single(),
+    // Financial profile
+    supabase
+      .from('financial_profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .single()
+  ])
+
+  // Rate limit check
+  if ((rateLimitResult.count || 0) >= 3) {
     return NextResponse.json({ error: "You've reached the maximum of 3 reports per day. Please try again tomorrow." }, { status: 429 })
   }
 
-  // 1. Check Pro Status
-  const { data: profile } = await supabase.from('profiles').select('plan').eq('id', user.id).single()
-  if (profile?.plan !== 'pro') {
-    return NextResponse.json({ error: "Pro subscription required for monthly reports." }, { status: 403 })
-  }
-
-  // 2. Check for existing report this month
-  const currentMonth = new Date().toLocaleString('default', { month: 'long', year: 'numeric' })
-  const { data: existingReport } = await supabase
-    .from('monthly_reports')
-    .select('*')
-    .eq('user_id', user.id)
-    .eq('report_month', currentMonth)
-    .single()
-
-  const { regenerate } = await req.json()
-
+  // Return cached report if exists and not regenerating
+  const existingReport = existingReportResult.data
   if (existingReport && !regenerate) {
     return NextResponse.json({ report: existingReport.content, month: currentMonth })
   }
 
-  // 3. Fetch Financial Data
-  const { data: financial } = await supabase.from('financial_profiles').select('*').eq('user_id', user.id).single()
+  // Financial profile required
+  const financial = financialResult.data
   if (!financial) {
     return NextResponse.json({ error: "Financial profile not found." }, { status: 404 })
   }
@@ -57,7 +64,7 @@ export async function POST(req: Request) {
   const totalDebts = (financial.debts || []).reduce((a: number, c: any) => a + (c.amount || 0), 0)
   const netWorth = (financial.savings || 0) - totalDebts
 
-  // 4. Generate AI Report
+  // Generate AI Report with faster model and strict constraints
   const prompt = `You are a financial health analyzer. 
   You must respond with ONLY valid JSON, no other text, no markdown, no backticks. 
   
@@ -96,8 +103,10 @@ export async function POST(req: Request) {
   try {
     const completion = await groq.chat.completions.create({
       messages: [{ role: "user", content: prompt }],
-      model: "llama-3.3-70b-versatile",
-      temperature: 0.1, // Lower temperature for more consistent JSON
+      model: "llama-3.1-8b-instant",
+      temperature: 0.1,
+      max_tokens: 800,
+      response_format: { type: "json_object" },
     })
 
     let reportContent = completion.choices[0]?.message?.content || "";
@@ -106,12 +115,16 @@ export async function POST(req: Request) {
     reportContent = reportContent.replace(/```json/g, "").replace(/```/g, "").trim();
 
     try {
-      JSON.parse(reportContent); // Validate JSON
+      const parsed = JSON.parse(reportContent);
+      // Validate required fields exist
+      if (!parsed.score || !parsed.wins || !parsed.concerns || !parsed.action_plan || !parsed.verdict) {
+        throw new Error("Missing fields");
+      }
     } catch (e) {
       throw new Error("The AI failed to generate a valid structured report. Please try again.");
     }
 
-    // 5. Save to database
+    // Save to database (upsert pattern)
     if (existingReport) {
       await supabase
         .from('monthly_reports')
@@ -129,6 +142,6 @@ export async function POST(req: Request) {
 
   } catch (error: any) {
     console.error("Report Generation Error:", error)
-    return NextResponse.json({ error: "Failed to generate report." }, { status: 500 })
+    return NextResponse.json({ error: error.message || "Failed to generate report." }, { status: 500 })
   }
 }

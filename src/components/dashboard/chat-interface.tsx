@@ -12,7 +12,7 @@ import { useData } from "@/components/providers/data-provider"
 type Message = {
   role: 'user' | 'assistant'
   content: string
-  verdict?: 'YES' | 'NO' | 'NOT YET' | 'ACHIEVABLE' | 'CHALLENGING' | 'URGENT' | 'ON TRACK' | 'GOOD MOVE' | 'RISKY'
+  verdict?: 'YES' | 'NO' | 'NOT YET' | 'ACHIEVABLE' | 'CHALLENGING' | 'URGENT' | 'ON TRACK' | 'GOOD MOVE' | 'RISKY' | 'NICE TRY' | 'LIVE PRICE' | 'ILLOGICAL' | 'OFF TRACK'
   actionPlan?: string[] | null
   createdAt?: string
 }
@@ -24,7 +24,7 @@ const EXAMPLES = [
 ]
 
 const parseAnswer = (rawAnswer: string) => {
-  const verdictMatch = rawAnswer.match(/VERDICT:\s*(YES|NO|NOT YET|ACHIEVABLE|CHALLENGING|URGENT|ON TRACK|GOOD MOVE|RISKY)/i)
+  const verdictMatch = rawAnswer.match(/VERDICT:\s*(YES|NO|NOT YET|ACHIEVABLE|CHALLENGING|URGENT|ON TRACK|GOOD MOVE|RISKY|NICE TRY|LIVE PRICE|ILLOGICAL|OFF TRACK)/i)
   const verdict = (verdictMatch ? verdictMatch[1].toUpperCase() : "ON TRACK") 
   
   const explanationMatch = rawAnswer.match(/EXPLANATION:\s*([\s\S]*?)(?=ACTION PLAN:|$)/i)
@@ -441,6 +441,10 @@ export function ChatInterface() {
                               ['YES', 'ON TRACK', 'GOOD MOVE'].includes(m.verdict) ? 'bg-success text-black' : 
                               ['NO', 'URGENT', 'RISKY'].includes(m.verdict) ? 'bg-danger text-white' : 
                               ['NOT YET', 'CHALLENGING'].includes(m.verdict) ? 'bg-warning text-black' :
+                              m.verdict === 'NICE TRY' ? 'bg-purple-500 text-white' :
+                              m.verdict === 'LIVE PRICE' ? 'bg-blue-500 text-white' :
+                              m.verdict === 'ILLOGICAL' ? 'bg-orange-500 text-black' :
+                              m.verdict === 'OFF TRACK' ? 'bg-warning text-black' :
                               'bg-blue-500 text-white'
                             }`}>
                               {m.verdict}
