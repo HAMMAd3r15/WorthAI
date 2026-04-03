@@ -97,7 +97,7 @@ export default function PrivacyPage() {
               Cookies
             </h2>
             <p className="text-lg leading-[1.8] text-secondary/90 font-medium">
-              WorthAI uses essential cookies only for authentication purposes. We do not use tracking or advertising cookies. See our Cookie Policy for more details.
+              WorthAI uses session and authentication cookies to provide the service. See our Cookie Policy for more details.
             </p>
           </section>
 

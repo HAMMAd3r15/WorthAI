@@ -52,7 +52,7 @@ export default function CookiePage() {
               Cookies We Use
             </h2>
             <p className="text-lg leading-[1.8] text-secondary/90 font-medium bg-primary/5 p-8 rounded-2xl border border-primary/20">
-              WorthAI uses <span className="text-white font-bold">only essential cookies</span> required for the service to function. These include authentication session cookies that keep you logged in. We do not use advertising, tracking, or analytics cookies. We believe in high-utility, zero-tracking software.
+              WorthAI uses session and authentication cookies required for the service to function. These include authentication session cookies that keep you logged in and personal preference settings. We believe in high-utility software that respects your workflow.
             </p>
           </section>
 

@@ -1,5 +1,5 @@
 import { Hero } from "@/components/landing/hero"
-import { TestimonialsSection } from "@/components/landing/testimonials-section"
+import { AboutSection } from "@/components/landing/about-section"
 import { FeatureShuffle } from "@/components/landing/feature-shuffle"
 import { FAQ } from "@/components/landing/faq"
 import { Pricing } from "@/components/landing/sections"
@@ -33,7 +33,7 @@ export default function Home() {
       </nav>
 
       <Hero />
-      <TestimonialsSection />
+      <AboutSection />
       
       <div id="features" className="relative z-10">
         <FeatureShuffle />

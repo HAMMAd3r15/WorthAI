@@ -17,6 +17,8 @@ export function Footer() {
             <ul className="space-y-4 font-josefin text-secondary">
               <li><a href="#features" className="hover:text-primary transition-colors hover:translate-x-1 inline-block transform duration-300">Features</a></li>
               <li><a href="#pricing" className="hover:text-primary transition-colors hover:translate-x-1 inline-block transform duration-300">Pricing</a></li>
+              <li><Link href="/about" className="hover:text-primary transition-colors hover:translate-x-1 inline-block transform duration-300">About</Link></li>
+              <li><Link href="/contact" className="hover:text-primary transition-colors hover:translate-x-1 inline-block transform duration-300">Contact</Link></li>
             </ul>
           </div>
           <div>

@@ -24,12 +24,9 @@ const faqs = [
   {
     question: "Is WorthAI actually free?",
     answer: "Yes. Every feature, from the Monthly Health Audit to the sharp AI advisor, is now completely free. We've removed all paid plans because we believe financial clarity should be accessible to everyone."
-  },
-  {
-    question: "Are there any hidden costs or ads?",
-    answer: "None. No ads, no hidden fees, and no credit card required. You get 10 AI questions every single day, resetting at midnight, along with unlimited income and expense tracking."
   }
 ]
+
 
 export function FAQ() {
   const [openIdx, setOpenIdx] = useState<number | null>(null)
