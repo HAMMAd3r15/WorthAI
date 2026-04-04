@@ -69,6 +69,10 @@ export default function DashboardPage() {
     { id: 'debt', label: 'Payoff', icon: Calculator },
   ]
 
+  const totalIncome = (financial?.income_sources || []).reduce((acc: number, item: any) => acc + (item.amount || 0), 0)
+  const totalExpenses = (financial?.expenses || []).reduce((acc: number, item: any) => acc + (item.amount || 0), 0)
+  const monthlySurplus = totalIncome - totalExpenses
+
   return (
     <div className="flex-1 h-screen flex flex-col bg-[#0A0D14] overflow-hidden text-foreground">
       {/* Mobile Navigation and Summary */}
@@ -188,7 +192,10 @@ export default function DashboardPage() {
               )}
 
               {activeView === 'debt' && (
-                <DebtPayoffPanel debts={financial.debts || []} />
+                <DebtPayoffPanel 
+                  debts={financial.debts || []} 
+                  monthlySurplus={monthlySurplus} 
+                />
               )}
             </motion.div>
           </AnimatePresence>

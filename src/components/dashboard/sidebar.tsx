@@ -4,17 +4,16 @@ import { WorthLogo } from "@/components/ui/worth-logo"
 import { useData } from "@/components/providers/data-provider"
 import { useModals } from "@/components/providers/modal-provider"
 import { motion } from "framer-motion"
-import { MessageSquare, Target, Calculator, FileText, TrendingUp, Wallet, CreditCard, PlusCircle, Settings, LogOut } from "lucide-react"
+import { MessageSquare, Target, Calculator, FileText, TrendingUp, Wallet, CreditCard, PlusCircle } from "lucide-react"
 import { SpendingBreakdown } from "./spending-breakdown"
 
 interface SidebarProps {
   activeView: 'chat' | 'goals' | 'debt'
   onViewChange: (view: 'chat' | 'goals' | 'debt') => void
   onOpenSettings: () => void
-  onLogout: () => void
 }
 
-export function Sidebar({ activeView, onViewChange, onOpenSettings, onLogout }: SidebarProps) {
+export function Sidebar({ activeView, onViewChange, onOpenSettings }: SidebarProps) {
   const { financial } = useData()
   const { openReport } = useModals()
 
@@ -120,24 +119,6 @@ export function Sidebar({ activeView, onViewChange, onOpenSettings, onLogout }: 
           onOpenSettings={onOpenSettings}
         />
       </div>
-
-      <div className="mt-auto pt-4 space-y-2">
-        <button
-          onClick={onOpenSettings}
-          className="w-full flex items-center gap-3.5 group p-3.5 rounded-2xl text-secondary hover:bg-white/5 hover:text-white transition-all duration-300"
-        >
-          <Settings className="w-5 h-5 text-secondary/60 group-hover:text-[#C9A84C] transition-colors" />
-          <span className="text-[14px] font-bold tracking-tight">Settings</span>
-        </button>
-        <button
-          onClick={onLogout}
-          className="w-full flex items-center gap-3.5 group p-3.5 rounded-2xl text-secondary hover:bg-danger/10 hover:text-danger transition-all duration-300"
-        >
-          <LogOut className="w-5 h-5 text-secondary/60 group-hover:text-danger transition-colors" />
-          <span className="text-[14px] font-bold tracking-tight">Log Out</span>
-        </button>
-      </div>
-
     </div>
   )
 }

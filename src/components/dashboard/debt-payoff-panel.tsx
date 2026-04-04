@@ -11,28 +11,28 @@ interface Debt {
   min_payment?: number
 }
 
-export function DebtPayoffPanel({ debts }: { debts: Debt[] }) {
-  const [extraPayment, setExtraPayment] = useState(0)
+export function DebtPayoffPanel({ debts, monthlySurplus }: { debts: Debt[], monthlySurplus: number }) {
+  const [surplusContribution, setSurplusContribution] = useState(0)
+  const [manualInterestRate, setManualInterestRate] = useState(0)
 
   const totalDebt = useMemo(() => debts.reduce((acc, d) => acc + (d.amount || 0), 0), [debts])
+  const isOverSurplus = surplusContribution > monthlySurplus
   
-  const calculatePayoff = (extra: number) => {
+  const calculatePayoff = (extra: number, interestRate: number) => {
     let currentTotal = totalDebt
     let months = 0
     let totalInterest = 0
     
-    // Simplified aggregate calculation for projection
-    // In a real app, we'd do this per debt with an avalanche/snowball strategy
-    const avgRate = debts.length > 0 
-      ? debts.reduce((acc, d) => acc + (d.interest_rate || 18), 0) / debts.length 
-      : 18
+    // Use user-provided interest rate or default to 0
+    const annualRate = interestRate || 0
     const minPayments = debts.reduce((acc, d) => acc + (d.min_payment || Math.max(25, (d.amount || 0) * 0.02)), 0)
     
-    const monthlyRate = (avgRate / 100) / 12
+    const monthlyRate = (annualRate / 100) / 12
     let balance = totalDebt
     const totalMonthly = minPayments + extra
 
-    if (totalMonthly <= balance * monthlyRate) return { months: 999, interest: 0 } // Never pays off
+    // If payments don't cover interest, it never pays off
+    if (monthlyRate > 0 && totalMonthly <= balance * monthlyRate) return { months: 999, interest: 0 } 
 
     while (balance > 0 && months < 600) { // 50 year cap
       const interest = balance * monthlyRate
@@ -44,8 +44,8 @@ export function DebtPayoffPanel({ debts }: { debts: Debt[] }) {
     return { months, interest: totalInterest }
   }
 
-  const standard = useMemo(() => calculatePayoff(0), [totalDebt, debts])
-  const optimized = useMemo(() => calculatePayoff(extraPayment), [totalDebt, debts, extraPayment])
+  const standard = useMemo(() => calculatePayoff(0, manualInterestRate), [totalDebt, manualInterestRate])
+  const optimized = useMemo(() => calculatePayoff(surplusContribution, manualInterestRate), [totalDebt, surplusContribution, manualInterestRate])
   
   const monthsSaved = standard.months - optimized.months
   const interestSaved = standard.interest - optimized.interest
@@ -59,6 +59,7 @@ export function DebtPayoffPanel({ debts }: { debts: Debt[] }) {
   }
 
   const getPayoffDate = (months: number) => {
+    if (months >= 600) return "Never"
     const d = new Date()
     d.setMonth(d.getMonth() + months)
     return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
@@ -97,41 +98,64 @@ export function DebtPayoffPanel({ debts }: { debts: Debt[] }) {
           {/* Controls */}
           <div className="lg:col-span-1 space-y-6">
             <div className="bg-[#111827] border border-white/5 rounded-[32px] p-8 space-y-8 shadow-2xl shadow-black/40">
-              <div className="space-y-6">
+              
+              {/* Surplus Contribution */}
+              <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-[10px] font-bold text-secondary/40 uppercase tracking-widest">Extra Monthly Payment</h4>
-                  <span className="text-[#C9A84C] font-black text-lg">{formatCurrency(extraPayment)}</span>
+                  <h4 className="text-[10px] font-bold text-secondary/40 uppercase tracking-widest">Surplus Contribution</h4>
+                  <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-md ${isOverSurplus ? 'bg-danger/10 text-danger' : 'bg-success/10 text-success'}`}>
+                    Available: {formatCurrency(monthlySurplus)}
+                  </span>
                 </div>
                 
-                <div className="relative group">
+                <div className="relative">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary/40 font-bold">$</div>
                   <input 
-                    type="range"
-                    min="0"
-                    max={Math.max(5000, totalDebt / 10)}
-                    step="50"
-                    value={extraPayment}
-                    onChange={(e) => setExtraPayment(parseInt(e.target.value))}
-                    className="w-full h-1.5 bg-white/5 rounded-full appearance-none cursor-pointer accent-[#C9A84C] hover:bg-white/10 transition-all"
+                    type="number"
+                    value={surplusContribution || ''}
+                    onChange={(e) => setSurplusContribution(Number(e.target.value))}
+                    placeholder="0"
+                    className={`w-full bg-white/5 border ${isOverSurplus ? 'border-danger/50 focus:border-danger' : 'border-white/5 focus:border-[#C9A84C]'} rounded-2xl py-4 pl-8 pr-4 text-white font-bold outline-none transition-all placeholder:text-white/10`}
                   />
                 </div>
 
-                <p className="text-[11px] text-secondary/40 font-medium leading-relaxed">
-                  Adding just {formatCurrency(extraPayment)} more to your monthly payments can dramatically change your payoff timeline.
-                </p>
+                {isOverSurplus && (
+                  <div className="flex items-center gap-2 text-danger text-[10px] font-bold bg-danger/5 p-3 rounded-xl border border-danger/10">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    <span>Contribution exceeds your monthly surplus of {formatCurrency(monthlySurplus)}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Interest Rate */}
+              <div className="space-y-4">
+                <h4 className="text-[10px] font-bold text-secondary/40 uppercase tracking-widest">Annual Interest Rate</h4>
+                <div className="relative">
+                  <input 
+                    type="number"
+                    value={manualInterestRate || ''}
+                    onChange={(e) => setManualInterestRate(Number(e.target.value))}
+                    placeholder="0"
+                    step="0.1"
+                    className="w-full bg-white/5 border border-white/5 focus:border-[#C9A84C] rounded-2xl py-4 px-4 text-white font-bold outline-none transition-all placeholder:text-white/10"
+                  />
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-secondary/40 font-bold">%</div>
+                </div>
+                <p className="text-[10px] text-secondary/40 font-medium">Leave at 0 if you don&apos;t want to include interest.</p>
               </div>
 
               <div className="h-px bg-white/5" />
 
               <div className="space-y-4">
-                <h4 className="text-[10px] font-bold text-secondary/40 uppercase tracking-widest">Current Outlook</h4>
+                <h4 className="text-[10px] font-bold text-secondary/40 uppercase tracking-widest">Debt Details</h4>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center bg-white/5 p-4 rounded-2xl border border-white/5">
-                    <span className="text-[12px] font-medium text-secondary/60">Total Debt</span>
+                    <span className="text-[12px] font-medium text-secondary/60">Total Amount</span>
                     <span className="text-[14px] font-black text-white">{formatCurrency(totalDebt)}</span>
                   </div>
                   <div className="flex justify-between items-center bg-white/5 p-4 rounded-2xl border border-white/5">
-                    <span className="text-[12px] font-medium text-secondary/60">Avg. Interest</span>
-                    <span className="text-[14px] font-black text-white">18.4%</span>
+                    <span className="text-[12px] font-medium text-secondary/60">Interest (Applied)</span>
+                    <span className="text-[14px] font-black text-white">{manualInterestRate || 0}%</span>
                   </div>
                 </div>
               </div>
@@ -158,12 +182,12 @@ export function DebtPayoffPanel({ debts }: { debts: Debt[] }) {
                   </div>
                   <div>
                     <p className="text-[#C9A84C] text-[11px] font-bold uppercase mb-1">Accelerated</p>
-                    <p className="text-3xl font-black text-white tracking-tighter">{getPayoffDate(optimized.months)}</p>
+                    <p className={`text-3xl font-black ${isOverSurplus ? 'text-white/20' : 'text-white'} tracking-tighter transition-colors`}>{getPayoffDate(optimized.months)}</p>
                   </div>
                   <div className="pt-2">
-                    <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-success/10 border border-success/20 rounded-full text-success text-[10px] font-black uppercase tracking-widest">
+                    <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${isOverSurplus ? 'bg-white/5 text-white/20' : 'bg-success/10 border border-success/20 text-success'}`}>
                       <TrendingDown className="w-3 h-3" />
-                      {monthsSaved} Months Sooner
+                      {isOverSurplus ? 'Waiting for valid input' : `${monthsSaved} Months Sooner`}
                     </span>
                   </div>
                 </div>
@@ -180,17 +204,19 @@ export function DebtPayoffPanel({ debts }: { debts: Debt[] }) {
                 <div className="space-y-4">
                   <div>
                     <p className="text-secondary/40 text-[11px] font-bold uppercase mb-1">Total Savings</p>
-                    <p className="text-4xl font-black text-[#C9A84C] tracking-tighter">{formatCurrency(interestSaved)}</p>
+                    <p className={`text-4xl font-black ${isOverSurplus ? 'text-[#C9A84C]/20' : 'text-[#C9A84C]'} tracking-tighter transition-colors`}>{isOverSurplus ? '$0' : formatCurrency(interestSaved)}</p>
                   </div>
                   <p className="text-secondary text-[12px] font-medium leading-relaxed pr-8">
-                    By paying roughly {formatCurrency(extraPayment)} extra per month, you avoid {formatCurrency(interestSaved / 12)} per month in average interest charges.
+                    {manualInterestRate > 0 
+                      ? `By paying your surplus of ${formatCurrency(surplusContribution)} extra per month, you avoid ${formatCurrency(interestSaved)} in projected interest.`
+                      : "With 0% interest, extra payments simply shorten your timeline without additional dollar savings."}
                   </p>
                 </div>
               </motion.div>
             </div>
 
             {/* Timeline Visualization */}
-            <div className="bg-[#111827] border border-white/5 rounded-[32px] p-10 shadow-2xl shadow-black/40">
+            <div className={`bg-[#111827] border border-white/5 rounded-[32px] p-10 shadow-2xl shadow-black/40 ${isOverSurplus ? 'opacity-40 grayscale pointer-events-none' : ''} transition-all duration-500`}>
               <h4 className="text-[10px] font-bold text-secondary/40 uppercase tracking-[0.2em] mb-10">Payoff Timeline</h4>
               
               <div className="relative pt-8 pb-12">
@@ -239,7 +265,7 @@ export function DebtPayoffPanel({ debts }: { debts: Debt[] }) {
               <div className="mt-8 flex items-start gap-3 bg-[#C9A84C]/5 border border-[#C9A84C]/10 p-4 rounded-2xl">
                 <Info className="w-4 h-4 text-[#C9A84C] shrink-0 mt-0.5" />
                 <p className="text-[11px] text-secondary font-medium leading-relaxed">
-                  This projection assumes an avalanche payoff strategy (highest interest first) and consistent monthly payments. Real-world results may vary slightly based on specific card terms.
+                  This calculator assumes consistent monthly payments. If you enter interest, it calculates compounding interest based on your average balance.
                 </p>
               </div>
             </div>
@@ -249,3 +275,4 @@ export function DebtPayoffPanel({ debts }: { debts: Debt[] }) {
     </div>
   )
 }
+
