@@ -147,6 +147,25 @@ export default function DashboardPage() {
 
         {/* Main Content Area */}
         <main className="flex-1 flex flex-col min-w-0 bg-[#0A0D14]">
+          {/* Desktop Navbar Actions */}
+          <header className="hidden lg:flex h-20 shrink-0 items-center justify-end px-12 gap-2 z-50">
+            <button 
+              onClick={() => setShowSettings(true)}
+              className="p-3 rounded-2xl hover:bg-white/5 transition-all text-secondary hover:text-[#C9A84C] group"
+              title="Settings"
+            >
+              <Settings className="w-5 h-5 transform group-hover:rotate-45 transition-all duration-300" />
+            </button>
+            <div className="h-4 w-[1px] bg-white/10 mx-2" />
+            <button 
+              onClick={handleLogoutClick}
+              className="p-3 rounded-2xl hover:bg-white/5 transition-all text-secondary hover:text-red-500 group"
+              title="End Session"
+            >
+              <LogOut className="w-5 h-5 group-hover:translate-x-1 transition-all duration-300" />
+            </button>
+          </header>
+
           <AnimatePresence mode="wait">
             <motion.div
               key={activeView}
