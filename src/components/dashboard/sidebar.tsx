@@ -1,18 +1,20 @@
 "use client"
 
+import { WorthLogo } from "@/components/ui/worth-logo"
 import { useData } from "@/components/providers/data-provider"
 import { useModals } from "@/components/providers/modal-provider"
 import { motion } from "framer-motion"
-import { MessageSquare, Target, Calculator, FileText, TrendingUp, Wallet, CreditCard, PlusCircle } from "lucide-react"
+import { MessageSquare, Target, Calculator, FileText, TrendingUp, Wallet, CreditCard, PlusCircle, Settings, LogOut } from "lucide-react"
 import { SpendingBreakdown } from "./spending-breakdown"
 
 interface SidebarProps {
   activeView: 'chat' | 'goals' | 'debt'
   onViewChange: (view: 'chat' | 'goals' | 'debt') => void
   onOpenSettings: () => void
+  onLogout: () => void
 }
 
-export function Sidebar({ activeView, onViewChange, onOpenSettings }: SidebarProps) {
+export function Sidebar({ activeView, onViewChange, onOpenSettings, onLogout }: SidebarProps) {
   const { financial } = useData()
   const { openReport } = useModals()
 
@@ -46,6 +48,11 @@ export function Sidebar({ activeView, onViewChange, onOpenSettings }: SidebarPro
   return (
     <div className="hidden lg:flex flex-col w-[340px] shrink-0 border-r border-white/5 h-full overflow-y-auto no-scrollbar p-6 space-y-8 bg-[#0A0D14]/50">
       
+      {/* Brand Header */}
+      <div className="px-2 mb-2">
+        <span className="text-2xl font-black tracking-tighter text-white">WorthAI</span>
+      </div>
+
       {/* Profile Summary / Nav */}
       <div className="space-y-2">
         <h4 className="text-[9px] font-bold text-secondary/40 uppercase tracking-[0.2em] mb-4 ml-2">Main Menu</h4>
@@ -107,11 +114,28 @@ export function Sidebar({ activeView, onViewChange, onOpenSettings }: SidebarPro
       </div>
 
       {/* Spending Breakdown */}
-      <div className="pt-2 pb-8">
+      <div className="pt-2">
         <SpendingBreakdown 
           expenses={financial?.expenses || []} 
           onOpenSettings={onOpenSettings}
         />
+      </div>
+
+      <div className="mt-auto pt-4 space-y-2">
+        <button
+          onClick={onOpenSettings}
+          className="w-full flex items-center gap-3.5 group p-3.5 rounded-2xl text-secondary hover:bg-white/5 hover:text-white transition-all duration-300"
+        >
+          <Settings className="w-5 h-5 text-secondary/60 group-hover:text-[#C9A84C] transition-colors" />
+          <span className="text-[14px] font-bold tracking-tight">Settings</span>
+        </button>
+        <button
+          onClick={onLogout}
+          className="w-full flex items-center gap-3.5 group p-3.5 rounded-2xl text-secondary hover:bg-danger/10 hover:text-danger transition-all duration-300"
+        >
+          <LogOut className="w-5 h-5 text-secondary/60 group-hover:text-danger transition-colors" />
+          <span className="text-[14px] font-bold tracking-tight">Log Out</span>
+        </button>
       </div>
 
     </div>

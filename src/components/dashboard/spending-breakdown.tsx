@@ -80,13 +80,17 @@ export function SpendingBreakdown({ expenses, onOpenSettings }: SpendingBreakdow
               ))}
             </Pie>
             <Tooltip 
+              isAnimationActive={false}
+              offset={40}
               contentStyle={{ 
                 backgroundColor: '#111827', 
                 border: '1px solid rgba(201,168,76,0.3)', 
                 borderRadius: '12px',
                 padding: '12px',
-                boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
+                boxShadow: '0 20px 40px rgba(0,0,0,0.6)',
+                pointerEvents: 'none'
               }}
+              wrapperStyle={{ pointerEvents: 'none', outline: 'none' }}
               itemStyle={{ color: '#F9FAFB', fontSize: '12px', fontWeight: 'bold' }}
               labelStyle={{ display: 'none' }}
               formatter={(value: any, name: any) => [

@@ -71,36 +71,31 @@ export default function DashboardPage() {
 
   return (
     <div className="flex-1 h-screen flex flex-col bg-[#0A0D14] overflow-hidden text-foreground">
-      {/* Navbar */}
-      <nav className="h-16 border-b border-white/5 flex items-center justify-between px-6 shrink-0 bg-[#0A0D14] z-[100]">
-        <div className="flex items-center gap-2 group cursor-pointer active:scale-95 transition-all" onClick={() => setActiveView('chat')}>
-          <div className="w-8 h-8 rounded-lg overflow-hidden shadow-lg shadow-primary/20 group-hover:scale-105 transition-all">
-            <WorthLogo className="w-8 h-8" />
-          </div>
-          <span className="text-xl font-bold tracking-tighter text-white group-hover:text-primary transition-colors">WorthAI</span>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <button 
-            onClick={() => setShowSettings(true)}
-            className="p-2.5 rounded-xl hover:bg-white/5 transition-all text-secondary hover:text-[#C9A84C]"
-          >
-            <Settings className="w-5 h-5" />
-          </button>
-          <div className="h-4 w-[1px] bg-white/10 mx-1" />
-          <button 
-            onClick={handleLogoutClick}
-            className="p-2.5 rounded-xl hover:bg-white/5 transition-all text-secondary hover:text-danger"
-          >
-            <LogOut className="w-5 h-5" />
-          </button>
-        </div>
-      </nav>
-
       {/* Mobile Navigation and Summary */}
       <div className="lg:hidden sticky top-0 z-50 bg-[#0A0D14]/95 backdrop-blur-md border-b border-white/5 shrink-0">
+        {/* Logo and Quick Info for Mobile */}
+        <div className="flex items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-2">
+            <span className="text-xl font-black tracking-tighter text-white">WorthAI</span>
+          </div>
+          <div className="flex items-center gap-3">
+             <button 
+              onClick={() => setShowSettings(true)}
+              className="p-2 rounded-xl bg-white/5 text-secondary"
+            >
+              <Settings className="w-4 h-4" />
+            </button>
+            <button 
+              onClick={handleLogoutClick}
+              className="p-2 rounded-xl bg-white/5 text-secondary"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
         {/* Navigation Tabs */}
-        <div className="flex overflow-x-auto no-scrollbar gap-3 px-6 pt-4 pb-2">
+        <div className="flex overflow-x-auto no-scrollbar gap-3 px-6 pb-2">
           {mobileTabs.map((tab) => (
             <button
               key={tab.id}
@@ -147,6 +142,7 @@ export default function DashboardPage() {
           activeView={activeView} 
           onViewChange={setActiveView} 
           onOpenSettings={() => setShowSettings(true)}
+          onLogout={handleLogoutClick}
         />
 
         {/* Main Content Area */}

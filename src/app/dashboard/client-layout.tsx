@@ -5,12 +5,11 @@ import { ModalProvider } from "@/components/providers/modal-provider"
 import { DataProvider, useData } from "@/components/providers/data-provider"
 
 function DashboardWrapper({ children }: { children: React.ReactNode }) {
-  const { profile, financial, refreshData } = useData()
+  const { profile, refreshData } = useData()
   
   return (
     <ModalProvider profile={profile} onUpgradeSuccess={refreshData}>
       <div className="flex min-h-screen bg-[#0A0D14] text-foreground font-josefin">
-        <Sidebar financial={financial} profile={profile} />
         <main className="flex-1 flex flex-col min-w-0">
           {children}
         </main>
