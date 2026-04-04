@@ -5,19 +5,24 @@ import { createClient } from "@/lib/supabase/client"
 import { ChatInterface } from "@/components/dashboard/chat-interface"
 import { SettingsPanel } from "@/components/dashboard/settings-panel"
 import { FinanceModal } from "@/components/dashboard/finance-modal"
+import { Sidebar } from "@/components/dashboard/sidebar"
+import { GoalsPanel } from "@/components/dashboard/goals-panel"
+import { DebtPayoffPanel } from "@/components/dashboard/debt-payoff-panel"
 import { useModals } from "@/components/providers/modal-provider"
-import { Settings, LogOut, CheckCircle2 } from "lucide-react"
+import { Settings, LogOut, CheckCircle2, MessageSquare, Target, Calculator } from "lucide-react"
 import { WorthLogo } from "@/components/ui/worth-logo"
 import { useRouter } from "next/navigation"
 import { AnimatePresence, motion } from "framer-motion"
 
-import { DataProvider, useData } from "@/components/providers/data-provider"
+import { useData } from "@/components/providers/data-provider"
 
 export default function DashboardPage() {
   const router = useRouter()
   const supabase = createClient()
   const { profile, financial, refreshData } = useData()
   const { openPricing } = useModals()
+  
+  const [activeView, setActiveView] = useState<'chat' | 'goals' | 'debt'>('chat')
   
   // Modals
   const [showSettings, setShowSettings] = useState(false)
@@ -58,11 +63,17 @@ export default function DashboardPage() {
     )
   }
 
+  const mobileTabs = [
+    { id: 'chat', label: 'Chat', icon: MessageSquare },
+    { id: 'goals', label: 'Goals', icon: Target },
+    { id: 'debt', label: 'Payoff', icon: Calculator },
+  ]
+
   return (
-    <div className="flex-1 h-full flex flex-col bg-[#0A0D14] overflow-hidden text-foreground">
+    <div className="flex-1 h-screen flex flex-col bg-[#0A0D14] overflow-hidden text-foreground">
       {/* Navbar */}
-      <nav className="h-16 border-b border-white/5 flex items-center justify-between px-6 shrink-0 bg-[#0A0D14] z-50">
-        <div className="flex items-center gap-2 group cursor-pointer active:scale-95 transition-all">
+      <nav className="h-16 border-b border-white/5 flex items-center justify-between px-6 shrink-0 bg-[#0A0D14] z-[100]">
+        <div className="flex items-center gap-2 group cursor-pointer active:scale-95 transition-all" onClick={() => setActiveView('chat')}>
           <div className="w-8 h-8 rounded-lg overflow-hidden shadow-lg shadow-primary/20 group-hover:scale-105 transition-all">
             <WorthLogo className="w-8 h-8" />
           </div>
@@ -86,13 +97,88 @@ export default function DashboardPage() {
         </div>
       </nav>
 
-      <main className="flex-1 flex flex-col min-h-0">
-        <div className="flex-1 max-w-5xl w-full mx-auto p-6 flex flex-col min-h-0">
-          <div className="flex-1 border border-white/5 rounded-[32px] overflow-hidden bg-[#0D1117]/50 backdrop-blur-sm flex flex-col">
-             <ChatInterface />
-          </div>
+      {/* Mobile Navigation and Summary */}
+      <div className="lg:hidden sticky top-0 z-50 bg-[#0A0D14]/95 backdrop-blur-md border-b border-white/5 shrink-0">
+        {/* Navigation Tabs */}
+        <div className="flex overflow-x-auto no-scrollbar gap-3 px-6 pt-4 pb-2">
+          {mobileTabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveView(tab.id as any)}
+              className={`flex-shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-2xl border font-bold text-[12px] uppercase tracking-widest transition-all ${
+                activeView === tab.id 
+                  ? 'bg-[#C9A84C] border-[#C9A84C] text-[#0A0D14] shadow-lg shadow-[#C9A84C]/20' 
+                  : 'bg-[#111827] border-white/5 text-secondary hover:border-white/10'
+              }`}
+            >
+              <tab.icon className="w-4 h-4" />
+              {tab.label}
+            </button>
+          ))}
         </div>
-      </main>
+
+        {/* Financial Summary Pills */}
+        <div className="flex overflow-x-auto no-scrollbar gap-3 px-6 pb-4 pt-2">
+          {[
+            { label: "Income", value: (financial?.income_sources || []).reduce((acc: number, item: any) => acc + (item.amount || 0), 0), color: "#C9A84C" },
+            { label: "Savings", value: financial?.savings || 0, color: "#10B981" },
+            { label: "Surplus", value: ((financial?.income_sources || []).reduce((acc: number, item: any) => acc + (item.amount || 0), 0) - (financial?.expenses || []).reduce((acc: number, item: any) => acc + (item.amount || 0), 0)), color: "#C9A84C" },
+            { label: "Debts", value: (financial?.debts || []).reduce((acc: number, item: any) => acc + (item.amount || 0), 0), color: "#EF4444" },
+          ].map((pill, i) => (
+            <div
+              key={pill.label}
+              className="flex-shrink-0 bg-[#111827] border border-white/5 rounded-xl px-4 py-2 min-w-[100px]"
+            >
+              <p className="text-[9px] font-bold uppercase tracking-wider text-white/40 mb-0.5">{pill.label}</p>
+              <p 
+                className="text-[14px] font-black tracking-tight"
+                style={{ color: pill.color }}
+              >
+                {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(pill.value)}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex-1 flex overflow-hidden">
+        {/* Desktop Sidebar */}
+        <Sidebar 
+          activeView={activeView} 
+          onViewChange={setActiveView} 
+          onOpenSettings={() => setShowSettings(true)}
+        />
+
+        {/* Main Content Area */}
+        <main className="flex-1 flex flex-col min-w-0 bg-[#0A0D14]">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeView}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="flex-1 flex flex-col min-h-0"
+            >
+              {activeView === 'chat' && (
+                <div className="flex-1 max-w-5xl w-full mx-auto lg:p-6 flex flex-col min-h-0">
+                  <div className="flex-1 lg:border lg:border-white/5 lg:rounded-[32px] overflow-hidden lg:bg-[#0D1117]/50 lg:backdrop-blur-sm flex flex-col">
+                    <ChatInterface />
+                  </div>
+                </div>
+              )}
+
+              {activeView === 'goals' && (
+                <GoalsPanel userId={profile.id} />
+              )}
+
+              {activeView === 'debt' && (
+                <DebtPayoffPanel debts={financial.debts || []} />
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </main>
+      </div>
 
       {/* Logout Confirmation Modal */}
       <AnimatePresence>
@@ -112,7 +198,6 @@ export default function DashboardPage() {
               transition={{ duration: 0.2 }}
               className="relative w-full max-w-[380px] bg-[#111827] border border-white/10 rounded-2xl overflow-hidden shadow-[0_24px_80px_-12px_rgba(0,0,0,0.8)]"
             >
-
               <div className="p-8">
                 <div className="flex items-start gap-4 mb-6">
                   <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 mt-0.5">
@@ -178,7 +263,6 @@ export default function DashboardPage() {
           />
         )}
       </AnimatePresence>
-
 
       {/* Toast Notification */}
       <AnimatePresence>

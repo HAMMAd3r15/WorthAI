@@ -6,7 +6,6 @@ import { Send, User, CheckCircle2, AlertCircle, Info, X, Clock, ChevronDown } fr
 import { WorthLogo } from "@/components/ui/worth-logo"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
-import { MobileSummaryBar } from "./mobile-summary-bar"
 import { useData } from "@/components/providers/data-provider"
 
 type Message = {
@@ -319,7 +318,6 @@ export function ChatInterface() {
 
   return (
     <div className="flex-1 flex flex-col min-h-0 relative">
-      <MobileSummaryBar />
       {/* Messages */}
 
       <div 

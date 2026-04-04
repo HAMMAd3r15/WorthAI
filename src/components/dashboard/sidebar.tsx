@@ -1,160 +1,119 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { motion, useSpring, useTransform, animate } from "framer-motion"
-import { 
-  BarChart3, 
-  Wallet, 
-  TrendingUp, 
-  ArrowUpRight, 
-  ArrowDownRight, 
-  Lock,
-  MinusCircle, 
-  PlusCircle,
-  CreditCard
-} from "lucide-react"
-import { WorthLogo } from "@/components/ui/worth-logo"
+import { useData } from "@/components/providers/data-provider"
 import { useModals } from "@/components/providers/modal-provider"
+import { motion } from "framer-motion"
+import { MessageSquare, Target, Calculator, FileText, TrendingUp, Wallet, CreditCard, PlusCircle } from "lucide-react"
+import { SpendingBreakdown } from "./spending-breakdown"
 
-function Counter({ value, prefix = "$", className = "" }: { value: number, prefix?: string, className?: string }) {
-  const [displayValue, setDisplayValue] = useState(0)
-
-  useEffect(() => {
-    const controls = animate(displayValue, value, {
-      duration: 1,
-      onUpdate: (latest) => setDisplayValue(latest)
-    })
-    return () => controls.stop()
-  }, [value])
-
-  return (
-    <span className={className}>
-      {prefix}{Math.floor(displayValue).toLocaleString()}
-    </span>
-  )
+interface SidebarProps {
+  activeView: 'chat' | 'goals' | 'debt'
+  onViewChange: (view: 'chat' | 'goals' | 'debt') => void
+  onOpenSettings: () => void
 }
 
-export function Sidebar({ financial, profile }: { financial: any, profile: any }) {
-  const { openPricing, openReport } = useModals()
+export function Sidebar({ activeView, onViewChange, onOpenSettings }: SidebarProps) {
+  const { financial } = useData()
+  const { openReport } = useModals()
+
   const totalIncome = (financial?.income_sources || []).reduce((acc: number, item: any) => acc + (item.amount || 0), 0)
   const totalExpenses = (financial?.expenses || []).reduce((acc: number, item: any) => acc + (item.amount || 0), 0)
   const totalDebts = (financial?.debts || []).reduce((acc: number, item: any) => acc + (item.amount || 0), 0)
   const totalSavings = financial?.savings || 0
   const monthlySurplus = totalIncome - totalExpenses
 
-  const cardClass = "p-5 bg-[#0D1117] border border-white/5 rounded-2xl hover:border-white/10 transition-all shadow-xl"
-  const labelClass = "text-[10px] font-bold uppercase tracking-[0.15em] text-secondary mb-1.5 block opacity-60"
+  const formatCurrency = (val: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      maximumFractionDigits: 0,
+    }).format(val)
+  }
 
-  const questionsLeft = Math.max(0, 10 - (profile?.questions_today || 0))
+  const navItems = [
+    { id: 'chat', label: 'AI Advisor', icon: MessageSquare },
+    { id: 'goals', label: 'Financial Goals', icon: Target },
+    { id: 'debt', label: 'Debt Payoff', icon: Calculator },
+  ]
+
+  const metrics = [
+    { label: "Monthly Income", value: totalIncome, icon: Wallet, color: "#C9A84C" },
+    { label: "Total Savings", value: totalSavings, icon: TrendingUp, color: "#10B981" },
+    { label: "Total Debt", value: totalDebts, icon: CreditCard, color: "#EF4444" },
+    { label: "Monthly Surplus", value: monthlySurplus, icon: PlusCircle, color: monthlySurplus >= 0 ? "#10B981" : "#EF4444" },
+  ]
 
   return (
-    <aside className="w-[260px] bg-[#0A0D14] border-r border-white/5 flex flex-col shrink-0 overflow-y-auto hidden md:flex h-full">
-      <div className="p-6 flex-1 flex flex-col space-y-8 mt-4">
-        <div>
-          <h2 className="text-sm font-bold text-white/40 uppercase tracking-[0.2em] mb-6 px-1">Overview</h2>
-          <div className="space-y-4">
-            {/* Income */}
-            <div className={cardClass}>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-8 h-8 rounded-full bg-[#C9A84C]/10 flex items-center justify-center">
-                  <PlusCircle className="w-4 h-4 text-[#C9A84C]" />
-                </div>
-                <span className={labelClass}>Income</span>
-              </div>
-              <Counter value={totalIncome} className="text-2xl font-bold text-[#C9A84C]" />
-            </div>
-
-            {/* Expenses */}
-            <div className={cardClass}>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">
-                  <MinusCircle className="w-4 h-4 text-secondary" />
-                </div>
-                <span className={labelClass}>Expenses</span>
-              </div>
-              <Counter value={totalExpenses} className="text-2xl font-bold text-foreground" />
-            </div>
-
-            {/* Surplus */}
-            <div className={cardClass}>
-              <div className="flex items-center gap-3 mb-3">
-                <div className={`w-8 h-8 rounded-full ${monthlySurplus >= 0 ? 'bg-success/10' : 'bg-danger/10'} flex items-center justify-center`}>
-                  <TrendingUp className={`w-4 h-4 ${monthlySurplus >= 0 ? 'text-success' : 'text-danger'}`} />
-                </div>
-                <span className={labelClass}>Monthly Surplus</span>
-              </div>
-              <Counter 
-                value={monthlySurplus} 
-                className={`text-2xl font-bold ${monthlySurplus >= 0 ? 'text-success' : 'text-danger'}`} 
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Report Button */}
-        <div className="px-1 mt-2">
-          <button 
-            onClick={openReport}
-            className="w-full group relative overflow-hidden p-4 rounded-2xl border transition-all duration-300 bg-[#C9A84C]/5 border-[#C9A84C]/20 hover:border-[#C9A84C]/40 hover:bg-[#C9A84C]/10 active:scale-[0.98]"
+    <div className="hidden lg:flex flex-col w-[340px] shrink-0 border-r border-white/5 h-full overflow-y-auto no-scrollbar p-6 space-y-8 bg-[#0A0D14]/50">
+      
+      {/* Profile Summary / Nav */}
+      <div className="space-y-2">
+        <h4 className="text-[9px] font-bold text-secondary/40 uppercase tracking-[0.2em] mb-4 ml-2">Main Menu</h4>
+        {navItems.map((item) => (
+          <button
+            key={item.id}
+            onClick={() => onViewChange(item.id as any)}
+            className={`w-full flex items-center justify-between group p-3.5 rounded-2xl transition-all duration-300 relative border ${
+              activeView === item.id 
+                ? 'bg-[#C9A84C]/10 border-[#C9A84C]/30 text-white' 
+                : 'bg-transparent border-transparent text-secondary hover:bg-white/5 hover:text-white'
+            }`}
           >
-            <div className="flex items-center gap-3 relative z-10">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center transition-colors bg-[#C9A84C]/10 text-[#C9A84C] overflow-hidden">
-                <WorthLogo className="w-5 h-5" />
-              </div>
-              <div className="text-left">
-                <span className="text-[11px] font-black uppercase tracking-widest block transition-colors text-white">Report</span>
-                <span className="text-[9px] text-secondary font-medium opacity-50 block uppercase tracking-tighter italic">
-                  AI Health Audit
-                </span>
-              </div>
+            <div className="flex items-center gap-3.5 relative z-10">
+              <item.icon className={`w-5 h-5 ${activeView === item.id ? 'text-[#C9A84C]' : 'text-secondary/60 group-hover:text-[#C9A84C]'} transition-colors`} />
+              <span className="text-[14px] font-bold tracking-tight">{item.label}</span>
             </div>
+            {activeView === item.id && (
+              <motion.div 
+                layoutId="nav-active"
+                className="absolute right-3 w-1.5 h-1.5 rounded-full bg-[#C9A84C] shadow-[0_0_12px_#C9A84C]"
+              />
+            )}
           </button>
-        </div>
+        ))}
 
-        <div className="pt-2 border-t border-white/5">
-          <h2 className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] mb-6 mt-6 px-1">Total Assets</h2>
-          <div className="space-y-6 px-1">
-            <div className="flex justify-between items-center group cursor-default">
-              <div className="flex items-center gap-3">
-                <Wallet className="w-4 h-4 text-secondary group-hover:text-success transition-colors" />
-                <span className="text-xs text-secondary font-medium">Savings</span>
-              </div>
-              <Counter value={totalSavings} className="text-sm font-bold text-success" />
-            </div>
-            
-            <div className="flex justify-between items-center group cursor-default">
-              <div className="flex items-center gap-3">
-                <CreditCard className="w-4 h-4 text-secondary group-hover:text-danger transition-colors" />
-                <span className="text-xs text-secondary font-medium">Total Debts</span>
-              </div>
-              <Counter value={totalDebts} className="text-sm font-bold text-danger" />
-            </div>
-          </div>
-
-
-        </div>
-
-        {/* Usage / Quota */}
-        <div className="mt-auto pt-8 border-t border-white/5">
-          <div className="px-1">
-             <span className={labelClass}>Usage</span>
-             <div className="flex items-center gap-3 mt-4">
-                <div className="w-9 h-9 rounded-xl bg-[#C9A84C]/10 flex items-center justify-center border border-[#C9A84C]/20 shadow-lg shadow-[#C9A84C]/5 overflow-hidden">
-                  <WorthLogo className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-white tracking-tight">
-                    {questionsLeft} of 10 left
-                  </p>
-                  <p className="text-[10px] text-secondary font-medium opacity-50 uppercase tracking-wider">
-                    Daily AI Questions
-                  </p>
-                </div>
-             </div>
-          </div>
-        </div>
-
+        <button
+          onClick={openReport}
+          className="w-full flex items-center gap-3.5 group p-3.5 rounded-2xl bg-white/5 border border-white/5 text-secondary hover:bg-white/10 hover:text-white transition-all duration-300 mt-4"
+        >
+          <FileText className="w-5 h-5 text-secondary/60 group-hover:text-[#C9A84C] transition-colors" />
+          <span className="text-[14px] font-bold tracking-tight">Monthly Report</span>
+          <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse" />
+        </button>
       </div>
-    </aside>
+
+      <div className="h-px bg-white/5 mx-2" />
+
+      {/* Metrics Grid */}
+      <div className="space-y-4">
+        <h4 className="text-[9px] font-bold text-secondary/40 uppercase tracking-[0.2em] mb-4 ml-2">Quick Summary</h4>
+        <div className="grid grid-cols-2 gap-3">
+          {metrics.map((metric) => (
+            <div 
+              key={metric.label}
+              className="bg-[#111827] border border-white/5 p-4 rounded-2xl flex flex-col gap-2 transition-all hover:border-white/10"
+            >
+              <div className="flex items-center gap-2">
+                <metric.icon className="w-3.5 h-3.5" style={{ color: metric.color }} />
+                <span className="text-[9px] font-bold text-secondary/40 uppercase tracking-widest">{metric.label.split(' ')[1]}</span>
+              </div>
+              <div>
+                <p className="text-[14px] font-black text-white tracking-tight leading-none mb-0.5">{formatCurrency(metric.value)}</p>
+                <p className="text-[10px] font-bold text-secondary/40 uppercase">Total</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Spending Breakdown */}
+      <div className="pt-2 pb-8">
+        <SpendingBreakdown 
+          expenses={financial?.expenses || []} 
+          onOpenSettings={onOpenSettings}
+        />
+      </div>
+
+    </div>
   )
 }
