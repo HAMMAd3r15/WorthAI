@@ -33,7 +33,7 @@ export default function TermsPage() {
             <span className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">Legal Document</span>
           </div>
           <h1 className="text-5xl md:text-6xl font-bold tracking-tight text-white mb-6 leading-[1.1]">Terms of Service</h1>
-          <p className="text-secondary font-medium uppercase tracking-[0.2em] text-xs opacity-60">Last updated: March 28, 2026</p>
+          <p className="text-secondary font-medium uppercase tracking-[0.2em] text-xs opacity-60">Last updated: April 4, 2026</p>
         </header>
 
         <div className="space-y-16">
@@ -69,11 +69,31 @@ export default function TermsPage() {
 
           <section className="group">
             <h2 className="text-xl font-bold text-primary uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
+              <span className="text-xs opacity-30 text-white font-black shrink-0">03b.</span>
+              AI Limitations
+            </h2>
+            <p className="text-lg leading-[1.8] text-secondary/90 font-medium">
+              WorthAI's AI responses are generated based solely on the financial information you provide. The accuracy of advice depends entirely on the accuracy of your financial profile. WorthAI may make calculation errors or provide advice that does not account for your full financial situation. Always verify important financial decisions independently.
+            </p>
+          </section>
+
+          <section className="group">
+            <h2 className="text-xl font-bold text-primary uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
+              <span className="text-xs opacity-30 text-white font-black shrink-0">03c.</span>
+              Stock Price Data
+            </h2>
+            <p className="text-lg leading-[1.8] text-secondary/90 font-medium">
+              Stock price information provided by WorthAI is sourced from Yahoo Finance and may be delayed by up to 15 minutes during market hours. WorthAI does not guarantee the accuracy or timeliness of stock price data. This information is for reference only and does not constitute investment advice.
+            </p>
+          </section>
+
+          <section className="group">
+            <h2 className="text-xl font-bold text-primary uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
               <span className="text-xs opacity-30 text-white font-black shrink-0">04.</span>
               User Responsibilities
             </h2>
             <p className="text-lg leading-[1.8] text-secondary/90 font-medium">
-              You are responsible for the accuracy of the financial information you provide. You must be 18 years or older to use WorthAI. You agree not to misuse the service or attempt to access other users&apos; data or proprietary code.
+              You are responsible for the accuracy of the financial information you provide. By using WorthAI you confirm you are of legal age in your jurisdiction to enter into this agreement. You agree not to misuse the service or attempt to access other users&apos; data or proprietary code.
             </p>
           </section>
 
@@ -84,6 +104,26 @@ export default function TermsPage() {
             </h2>
             <p className="text-lg leading-[1.8] text-secondary/90 font-medium font-josefin">
               WorthAI and its creators are not liable for any financial losses, damages, or consequences arising from use of this service. Use WorthAI at your own risk. We provide the service &quot;as is&quot; without explicit warranties of any kind.
+            </p>
+          </section>
+
+          <section className="group">
+            <h2 className="text-xl font-bold text-primary uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
+              <span className="text-xs opacity-30 text-white font-black shrink-0">05b.</span>
+              Usage Limits
+            </h2>
+            <p className="text-lg leading-[1.8] text-secondary/90 font-medium">
+              Free tier users are limited to 10 AI queries per day. This limit resets daily at midnight UTC. WorthAI reserves the right to adjust usage limits at any time without prior notice.
+            </p>
+          </section>
+
+          <section className="group">
+            <h2 className="text-xl font-bold text-primary uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
+              <span className="text-xs opacity-30 text-white font-black shrink-0">05c.</span>
+              Monthly Reports
+            </h2>
+            <p className="text-lg leading-[1.8] text-secondary/90 font-medium">
+              Monthly financial health reports are AI-generated summaries based on your profile data. They are for informational purposes only and do not constitute professional financial advice or a formal financial assessment.
             </p>
           </section>
 

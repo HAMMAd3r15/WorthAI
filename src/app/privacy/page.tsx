@@ -33,7 +33,7 @@ export default function PrivacyPage() {
             <span className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">Confidential</span>
           </div>
           <h1 className="text-5xl md:text-6xl font-bold tracking-tight text-white mb-6 leading-[1.1]">Privacy Policy</h1>
-          <p className="text-secondary font-medium uppercase tracking-[0.2em] text-xs opacity-60">Last updated: March 28, 2026</p>
+          <p className="text-secondary font-medium uppercase tracking-[0.2em] text-xs opacity-60">Last updated: April 4, 2026</p>
         </header>
 
         <div className="space-y-16">
@@ -67,7 +67,7 @@ export default function PrivacyPage() {
               How We Use Your Information
             </h2>
             <p className="text-lg leading-[1.8] text-secondary/90 font-medium">
-              We use your information solely to provide personalized AI financial advice. <span className="text-white font-bold italic">We do not sell your data to third parties.</span> We do not share your financial information with anyone outside of WorthAI without your explicit consent.
+              We use your information solely to provide personalized AI financial advice. <span className="text-white font-bold italic">We do not sell your data to third parties.</span> We do not share your financial information with anyone outside of WorthAI without your explicit consent. Your financial profile data is never used to train AI models, never shared with third parties, and never used for advertising purposes.
             </p>
           </section>
 
@@ -78,6 +78,16 @@ export default function PrivacyPage() {
             </h2>
             <p className="text-lg leading-[1.8] text-secondary/90 font-medium font-josefin">
               Your data is stored securely using Supabase, which uses industry-standard encryption. Financial profile data is stored in our database and is only accessible to you through our authenticated API.
+            </p>
+          </section>
+
+          <section className="group">
+            <h2 className="text-xl font-bold text-primary uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
+              <span className="text-xs opacity-30 text-white font-black shrink-0">03b.</span>
+              Data Processing
+            </h2>
+            <p className="text-lg leading-[1.8] text-secondary/90 font-medium">
+              We process your financial data solely to generate personalized AI responses. All processing happens through secured API connections. No financial data is ever stored on third party servers beyond what is necessary to generate your response.
             </p>
           </section>
 
@@ -119,7 +129,7 @@ export default function PrivacyPage() {
                 </div>
                 <div className="p-6 bg-white/5 rounded-2xl border border-white/5 group-hover:border-primary/20 transition-all">
                    <h3 className="text-primary font-bold mb-2">Yahoo Finance</h3>
-                   <p className="text-sm">Real-time and market stock price data for financial queries. No personal data is shared with Yahoo Finance.</p>
+                   <p className="text-sm">Real-time and market stock price data for financial queries. When you request a stock price, only the ticker symbol is sent to Yahoo Finance servers. No personal or financial information is included in these requests. Stock prices may be delayed up to 15 minutes during market hours.</p>
                 </div>
               </div>
             </div>

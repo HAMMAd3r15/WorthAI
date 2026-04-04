@@ -32,7 +32,7 @@ export default function CookiePage() {
             <span className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">Session Policy</span>
           </div>
           <h1 className="text-5xl md:text-6xl font-bold tracking-tight text-white mb-6 leading-[1.1]">Cookie Policy</h1>
-          <p className="text-secondary font-medium uppercase tracking-[0.2em] text-xs opacity-60">Last updated: March 28, 2026</p>
+          <p className="text-secondary font-medium uppercase tracking-[0.2em] text-xs opacity-60">Last updated: April 4, 2026</p>
         </header>
 
         <div className="space-y-16">
@@ -52,7 +52,7 @@ export default function CookiePage() {
               Cookies We Use
             </h2>
             <p className="text-lg leading-[1.8] text-secondary/90 font-medium bg-primary/5 p-8 rounded-2xl border border-primary/20">
-              WorthAI uses session and authentication cookies required for the service to function. These include authentication session cookies that keep you logged in and personal preference settings. We believe in high-utility software that respects your workflow.
+              WorthAI uses session and authentication cookies required for the service to function. These include authentication session cookies that keep you logged in and personal preference settings. We believe in high-utility software that respects your workflow. We also use browser localStorage to store UI preferences such as dismissed notification banners. This data never leaves your device and is not transmitted to our servers.
             </p>
           </section>
 
