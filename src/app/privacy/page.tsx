@@ -117,6 +117,10 @@ export default function PrivacyPage() {
                    <h3 className="text-primary font-bold mb-2">Groq</h3>
                    <p className="text-sm">AI inference processing for our financial model logic.</p>
                 </div>
+                <div className="p-6 bg-white/5 rounded-2xl border border-white/5 group-hover:border-primary/20 transition-all">
+                   <h3 className="text-primary font-bold mb-2">Yahoo Finance</h3>
+                   <p className="text-sm">Real-time and market stock price data for financial queries. No personal data is shared with Yahoo Finance.</p>
+                </div>
               </div>
             </div>
           </section>

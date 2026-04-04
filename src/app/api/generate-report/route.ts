@@ -2,9 +2,42 @@ import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import Groq from "groq-sdk"
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY
-})
+const groqReportKeys = [
+  process.env.GROQ_API_KEY_REPORT
+].filter(Boolean)
+
+let currentReportIndex = 0
+
+async function callGroqWithRotation(prompt: string) {
+  for (let i = 0; i < groqReportKeys.length; i++) {
+    const startIndex = currentReportIndex
+    currentReportIndex = (currentReportIndex + 1) % groqReportKeys.length
+    
+    const currentKey = groqReportKeys[startIndex]
+    
+    try {
+      const groq = new Groq({ 
+        apiKey: currentKey 
+      })
+      const response = await groq.chat.completions.create({
+        model: "llama-3.1-8b-instant",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.1,
+        max_tokens: 800,
+        response_format: { type: "json_object" },
+      })
+      return response
+    } catch (error: any) {
+      if (error.status === 429) {
+        console.log(`Report Key ${startIndex + 1} rate limited, trying next key`)
+        continue
+      } else {
+        throw error
+      }
+    }
+  }
+  throw new Error('ALL_REPORT_KEYS_EXHAUSTED')
+}
 
 export async function POST(req: Request) {
   const supabase = await createClient()
@@ -101,13 +134,15 @@ export async function POST(req: Request) {
   Be honest and specific based on these numbers.`
 
   try {
-    const completion = await groq.chat.completions.create({
-      messages: [{ role: "user", content: prompt }],
-      model: "llama-3.1-8b-instant",
-      temperature: 0.1,
-      max_tokens: 800,
-      response_format: { type: "json_object" },
-    })
+    let completion;
+    try {
+      completion = await callGroqWithRotation(prompt)
+    } catch (error: any) {
+      if (error.message === 'ALL_REPORT_KEYS_EXHAUSTED') {
+        throw new Error("Report generation is currently unavailable due to high demand. Please try again in 10 minutes.")
+      }
+      throw error
+    }
 
     let reportContent = completion.choices[0]?.message?.content || "";
     

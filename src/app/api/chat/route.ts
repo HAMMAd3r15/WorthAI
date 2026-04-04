@@ -2,13 +2,111 @@ import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import Groq from "groq-sdk"
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY
-})
+const groqChatKeys = [
+  process.env.GROQ_API_KEY,
+  process.env.GROQ_API_KEY_1,
+  process.env.GROQ_API_KEY_2,
+  process.env.GROQ_API_KEY_3,
+  process.env.GROQ_API_KEY_4,
+  process.env.GROQ_API_KEY_5,
+  process.env.GROQ_API_KEY_6,
+  process.env.GROQ_API_KEY_7,
+  process.env.GROQ_API_KEY_8,
+  process.env.GROQ_API_KEY_9,
+  process.env.GROQ_API_KEY_10,
+].filter(Boolean)
+
+let currentChatIndex = 0
+
+async function callGroqWithRotation(messages: any[], systemPrompt: string) {
+  for (let i = 0; i < groqChatKeys.length; i++) {
+    const startIndex = currentChatIndex
+    currentChatIndex = (currentChatIndex + 1) % groqChatKeys.length
+    
+    const currentKey = groqChatKeys[startIndex]
+    
+    try {
+      const groq = new Groq({ 
+        apiKey: currentKey 
+      })
+      const response = await groq.chat.completions.create({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          ...messages
+        ],
+        max_tokens: 1024,
+        temperature: 0.3
+      })
+      return response
+    } catch (error: any) {
+      if (error.status === 429) {
+        console.log(`Key ${startIndex + 1} rate limited, trying next key`)
+        continue
+      } else {
+        throw error
+      }
+    }
+  }
+  throw new Error('ALL_KEYS_EXHAUSTED')
+}
 
 // Rate limiting maps
 const ipRateLimitMap = new Map<string, { count: number, resetTime: number }>()
 const userRateLimitMap = new Map<string, { count: number, resetTime: number }>()
+ 
+// --- CANNED RESPONSES ---
+const NICE_TRY_RESPONSES = [
+  "lol not happening. I only talk about money. What is your actual financial question?",
+  "Nice attempt but no. I am strictly a finance advisor. What is going on with your money?",
+  "That is not going to work. I only do finance. Ask me something about your wallet.",
+  "Tried that, did not work, never will. What is your money question?",
+  "I see what you are doing and the answer is no. Finance questions only.",
+  "Bold move. Wrong app though. Ask me about your finances.",
+  "Not today. I am a finance advisor, full stop. What money stuff can I help with?"
+]
+ 
+const OFF_TOPIC_RESPONSES = [
+  "bro this is a finance app not Google. Ask me about your money.",
+  "That is a great question for literally any other app. I do money stuff only.",
+  "Not gonna lie I have no idea why you asked me that. Finance questions only.",
+  "I am going to pretend I did not see that. What is your actual financial question?",
+  "Wrong AI for that one. I only deal with your wallet. What is up with your money?",
+  "Interesting question. For someone else. I do finance. What is your money situation?",
+  "I appreciate the curiosity but that is not my area. Money questions only."
+]
+ 
+const getRandomResponse = (responses: string[]) => responses[Math.floor(Math.random() * responses.length)]
+ 
+const IP_LIMIT_RESPONSES = [
+  "Too many requests from your connection.",
+  "Your connection is hitting the limit. Slow down a bit.",
+  "Too many requests. Take a breather and try again later."
+]
+ 
+const USER_LIMIT_RESPONSES = [
+  "You're asking too fast. Wait a moment before your next question.",
+  "Slow down! You're firing questions too quickly.",
+  "Hold on a second. You're asking questions faster than I can process them."
+]
+ 
+const DAILY_LIMIT_RESPONSES = [
+  "You've used all 10 of your questions for today. Come back tomorrow — Worth resets at midnight.",
+  "That's 10 for today. You're cut off until tomorrow.",
+  "Daily limit reached. Catch you tomorrow for more money talk."
+]
+ 
+const ONBOARDING_RESPONSES = [
+  "Please complete your financial profile first",
+  "I need your financial profile to give you accurate advice. Complete it first!",
+  "Whoops! You haven't set up your profile yet. Do that first."
+]
+ 
+const SHORT_QUESTION_RESPONSES = [
+  "Please ask a complete question.",
+  "That was a bit short. Give me more context!",
+  "I need a bit more detail to help you out. Ask a full question."
+]
 
 // --- JAILBREAK DETECTION ---
 const JAILBREAK_PATTERNS = [
@@ -123,35 +221,36 @@ async function fetchStockPrice(ticker: string): Promise<{
   companyName?: string
   error?: string
 }> {
-  const apiKey = process.env.ALPHA_VANTAGE_API_KEY
-  if (!apiKey) {
-    return { success: false, error: 'Stock data is unavailable right now. Try again in a moment.' }
-  }
-
   try {
     const response = await fetch(
-      `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${ticker}&apikey=${apiKey}`
+      `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=1d`,
+      {
+        headers: {
+          'User-Agent': 'Mozilla/5.0'
+        }
+      }
     )
     const data = await response.json()
+    
+    if (data.chart?.result?.[0]?.meta) {
+      const meta = data.chart.result[0].meta
+      const price = meta.regularMarketPrice
+      const previousClose = meta.chartPreviousClose
+      const diff = price - previousClose
+      const diffPercent = (diff / previousClose) * 100
 
-    if (data['Global Quote'] && data['Global Quote']['05. price']) {
-      const quote = data['Global Quote']
       return {
         success: true,
-        price: parseFloat(quote['05. price']).toFixed(2),
-        change: parseFloat(quote['09. change']).toFixed(2),
-        changePercent: quote['10. change percent'],
+        price: price.toFixed(2),
+        change: diff.toFixed(2),
+        changePercent: diffPercent.toFixed(2) + '%',
         companyName: TICKER_MAP[ticker] || ticker,
       }
     }
 
-    // Check for API rate limit message
-    if (data['Note'] || data['Information']) {
-      return { success: false, error: 'Stock data is unavailable right now. Try again in a moment.' }
-    }
-
     return { success: false, error: "Couldn't find that ticker. Double check the symbol and try again." }
-  } catch {
+  } catch (error) {
+    console.error('Yahoo Finance Error:', error)
     return { success: false, error: 'Stock data is unavailable right now. Try again in a moment.' }
   }
 }
@@ -212,7 +311,7 @@ export async function POST(req: Request) {
 
   const currentIpLimit = ipRateLimitMap.get(ip) || { count: 0, resetTime: now + ipWindowMs }
   if (currentIpLimit.count >= 30) {
-    return NextResponse.json({ error: "Too many requests from your connection." }, { status: 429 })
+    return NextResponse.json({ error: getRandomResponse(IP_LIMIT_RESPONSES) }, { status: 429 })
   }
   ipRateLimitMap.set(ip, { count: currentIpLimit.count + 1, resetTime: currentIpLimit.resetTime })
 
@@ -231,7 +330,7 @@ export async function POST(req: Request) {
 
   const currentUserLimit = userRateLimitMap.get(user.id) || { count: 0, resetTime: now + userWindowMs }
   if (currentUserLimit.count >= 3) {
-    return NextResponse.json({ error: "You're asking too fast. Wait a moment before your next question." }, { status: 429 })
+    return NextResponse.json({ error: getRandomResponse(USER_LIMIT_RESPONSES) }, { status: 429 })
   }
   userRateLimitMap.set(user.id, { count: currentUserLimit.count + 1, resetTime: currentUserLimit.resetTime })
 
@@ -260,7 +359,7 @@ export async function POST(req: Request) {
   }
 
   if (profile.questions_today >= 10) {
-    return NextResponse.json({ error: "You've used all 10 of your questions for today. Come back tomorrow — Worth resets at midnight." }, { status: 429 })
+    return NextResponse.json({ error: getRandomResponse(DAILY_LIMIT_RESPONSES) }, { status: 429 })
   }
 
   // 5. Daily Increment - Burns a question immediately
@@ -274,7 +373,7 @@ export async function POST(req: Request) {
   if (!financial) {
     return NextResponse.json({ 
       redirect: '/onboarding', 
-      error: "Please complete your financial profile first" 
+      error: getRandomResponse(ONBOARDING_RESPONSES)
     }, { status: 403 })
   }
 
@@ -288,7 +387,7 @@ export async function POST(req: Request) {
 
   // Minimum length check
   if (question.trim().length < 3) {
-    return NextResponse.json({ error: "Please ask a complete question." }, { status: 400 })
+    return NextResponse.json({ error: getRandomResponse(SHORT_QUESTION_RESPONSES) }, { status: 400 })
   }
 
   try {
@@ -305,16 +404,17 @@ export async function POST(req: Request) {
 
   // --- JAILBREAK CHECK (before calling Groq — saves API credits) ---
   if (isJailbreakAttempt(question)) {
+    const reasoning = getRandomResponse(NICE_TRY_RESPONSES)
     // Save to history
     supabase.from('chat_history').insert({
       user_id: user.id,
       question: question,
-      answer: 'VERDICT: NICE TRY\nEXPLANATION: lol not happening. I only talk about money. What is your actual financial question?\nACTION PLAN:'
+      answer: `VERDICT: NICE TRY\nEXPLANATION: ${reasoning}\nACTION PLAN:`
     }).then()
 
     return NextResponse.json({
       verdict: 'NICE TRY',
-      reasoning: 'lol not happening. I only talk about money. What is your actual financial question?',
+      reasoning,
       actionPlan: null
     })
   }
@@ -339,7 +439,7 @@ export async function POST(req: Request) {
     }
 
     const changeNum = parseFloat(stockData.change!)
-    const sentiment = changeNum >= 0 ? 'up today ngl' : 'having a rough day'
+    const sentiment = changeNum >= 0 ? 'up today not gonna lie' : 'having a rough day'
 
     const reasoning = `${stockData.companyName} (${detectedTicker})\nCurrent Price: $${stockData.price}\nToday's Change: ${changeNum >= 0 ? '+' : ''}$${stockData.change} (${stockData.changePercent})\n\n${sentiment}\n\nNote: I only give you current prices — no predictions, no future price targets. For investment decisions, use your financial profile to figure out if you can actually afford to invest right now.`
 
@@ -361,7 +461,7 @@ export async function POST(req: Request) {
   if (isTopicBlocked(question)) {
     return NextResponse.json({
       verdict: "OFF TRACK",
-      reasoning: "I only help with financial questions. Ask me something about your money — like whether you can afford something, how to pay off debt faster, or what to do with your savings.",
+      reasoning: getRandomResponse(OFF_TOPIC_RESPONSES),
       actionPlan: null
     })
   }
@@ -377,8 +477,8 @@ export async function POST(req: Request) {
 
 YOUR PERSONALITY (stick to this always):
 - Professional but fun — 10% gen Z energy, never cringe, never try-hard. Just naturally cool.
-- Friendly roaster — if someone says something dumb financially, call it out with a light roast. Example: 'bro you want to spend ALL your savings on a car with $0 emergency fund? that's a bold strategy ngl 💀 here's why that's not it:'
-- Use occasional casual phrases naturally: 'not gonna lie', 'lowkey', 'real talk', 'ngl', 'that's actually not bad', 'okay but hear me out'
+- Friendly roaster — if someone says something dumb financially, call it out with a light roast. Example: 'bro you want to spend ALL your savings on a car with $0 emergency fund? that's a bold strategy not gonna lie 💀 here's why that's not it:'
+- Use occasional casual phrases naturally: 'not gonna lie', 'lowkey', 'real talk', 'that's actually not bad', 'okay but hear me out'
 - Never overdo it — one casual phrase per response max
 - Always precise with math — calculations must be 100% accurate, show exact numbers
 - Never boring — finance is dry, you make it engaging
@@ -452,20 +552,24 @@ User Financial Profile:
 - Debts: ${debtsBreakdown || 'None'}`
 
   try {
-    const completion = await groq.chat.completions.create({
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: question }
-      ],
-      model: "llama-3.3-70b-versatile",
-      temperature: 0.3,
-      max_tokens: 1024,
-    })
+    let completion;
+    try {
+      completion = await callGroqWithRotation([{ role: "user", content: question }], systemPrompt)
+    } catch (error: any) {
+      if (error.message === 'ALL_KEYS_EXHAUSTED') {
+        return NextResponse.json({
+          verdict: 'UNAVAILABLE',
+          reasoning: 'Worth AI is currently experiencing high demand. Please try again in a few minutes — the system resets shortly.',
+          actionPlan: []
+        })
+      }
+      throw error
+    }
 
     const rawAnswer = completion.choices[0].message.content || ""
     
     // Structured Parsing
-    const verdictMatch = rawAnswer.match(/VERDICT:\s*(YES|NO|NOT YET|ACHIEVABLE|CHALLENGING|URGENT|ON TRACK|GOOD MOVE|RISKY|ILLOGICAL|LIVE PRICE|NICE TRY)/i)
+    const verdictMatch = rawAnswer.match(/VERDICT:\s*(YES|NO|NOT YET|ACHIEVABLE|CHALLENGING|URGENT|ON TRACK|GOOD MOVE|RISKY|ILLOGICAL|LIVE PRICE|NICE TRY|OFF TRACK|UNAVAILABLE)/i)
     const verdict = (verdictMatch ? verdictMatch[1].toUpperCase() : "ON TRACK") 
     
     const explanationMatch = rawAnswer.match(/EXPLANATION:\s*([\s\S]*?)(?=ACTION PLAN:|$)/i)

@@ -12,7 +12,7 @@ import { useData } from "@/components/providers/data-provider"
 type Message = {
   role: 'user' | 'assistant'
   content: string
-  verdict?: 'YES' | 'NO' | 'NOT YET' | 'ACHIEVABLE' | 'CHALLENGING' | 'URGENT' | 'ON TRACK' | 'GOOD MOVE' | 'RISKY' | 'NICE TRY' | 'LIVE PRICE' | 'ILLOGICAL' | 'OFF TRACK'
+  verdict?: 'YES' | 'NO' | 'NOT YET' | 'ACHIEVABLE' | 'CHALLENGING' | 'URGENT' | 'ON TRACK' | 'GOOD MOVE' | 'RISKY' | 'NICE TRY' | 'LIVE PRICE' | 'ILLOGICAL' | 'OFF TRACK' | 'UNAVAILABLE'
   actionPlan?: string[] | null
   createdAt?: string
 }
@@ -24,7 +24,7 @@ const EXAMPLES = [
 ]
 
 const parseAnswer = (rawAnswer: string) => {
-  const verdictMatch = rawAnswer.match(/VERDICT:\s*(YES|NO|NOT YET|ACHIEVABLE|CHALLENGING|URGENT|ON TRACK|GOOD MOVE|RISKY|NICE TRY|LIVE PRICE|ILLOGICAL|OFF TRACK)/i)
+  const verdictMatch = rawAnswer.match(/VERDICT:\s*(YES|NO|NOT YET|ACHIEVABLE|CHALLENGING|URGENT|ON TRACK|GOOD MOVE|RISKY|NICE TRY|LIVE PRICE|ILLOGICAL|OFF TRACK|UNAVAILABLE)/i)
   const verdict = (verdictMatch ? verdictMatch[1].toUpperCase() : "ON TRACK") 
   
   const explanationMatch = rawAnswer.match(/EXPLANATION:\s*([\s\S]*?)(?=ACTION PLAN:|$)/i)
@@ -431,13 +431,13 @@ export function ChatInterface() {
 
                     <div className={`max-w-[85%] md:max-w-[70%] ${
                       m.role === 'user' 
-                      ? 'bg-[#111827] border-white/10 rounded-2xl rounded-tr-none p-4 md:p-5 text-white/90' 
-                      : 'bg-white/5 border-white/5 rounded-2xl rounded-tl-none p-4 md:p-6 shadow-2xl'
+                      ? 'bg-[#111827] border-white/10 rounded-2xl rounded-tr-none p-[10px_14px] md:p-5 text-white/90' 
+                      : 'bg-white/5 border-white/5 rounded-2xl rounded-tl-none p-[12px_16px] md:p-6 shadow-2xl'
                     } border`}>
                       {m.role === 'assistant' && (
                         <div className="mb-0">
                           {m.verdict && (
-                            <span className={`inline-flex items-center px-2.5 py-1 rounded text-[10px] font-bold tracking-widest uppercase mb-4 ${
+                            <span className={`inline-flex items-center p-[3px_10px] rounded text-[11px] md:text-[10px] md:px-2.5 md:py-1 font-bold tracking-widest uppercase mb-4 ${
                               ['YES', 'ON TRACK', 'GOOD MOVE'].includes(m.verdict) ? 'bg-success text-black' : 
                               ['NO', 'URGENT', 'RISKY'].includes(m.verdict) ? 'bg-danger text-white' : 
                               ['NOT YET', 'CHALLENGING'].includes(m.verdict) ? 'bg-warning text-black' :
@@ -445,21 +445,28 @@ export function ChatInterface() {
                               m.verdict === 'LIVE PRICE' ? 'bg-blue-500 text-white' :
                               m.verdict === 'ILLOGICAL' ? 'bg-orange-500 text-black' :
                               m.verdict === 'OFF TRACK' ? 'bg-warning text-black' :
+                              m.verdict === 'UNAVAILABLE' ? 'bg-gray-500 text-white' :
                               'bg-blue-500 text-white'
                             }`}>
                               {m.verdict}
                             </span>
                           )}
-                          <p className="text-[14px] leading-[1.5] md:text-[15px] md:leading-relaxed text-foreground font-medium mb-4 md:mb-6">
+                          <p className="text-[13px] leading-[1.5] md:text-[15px] md:leading-relaxed text-foreground font-medium mb-4 md:mb-6 whitespace-pre-wrap">
                             {m.content}
                           </p>
+
+                          {m.verdict === 'LIVE PRICE' && (
+                            <p className="text-[11px] text-secondary/50 italic -mt-2 mb-4 md:mb-6">
+                              Prices may be delayed up to 15 minutes during market hours.
+                            </p>
+                          )}
                           
                           {m.actionPlan && m.actionPlan.length > 0 && (
-                            <div className="space-y-2 md:space-y-3 bg-white/5 p-3 md:p-5 rounded-xl border border-white/5">
+                            <div className="space-y-2 md:space-y-3 bg-white/5 p-[10px_12px] md:p-5 rounded-xl border border-white/5">
                               <h4 className="text-[9px] md:text-[10px] font-bold text-[#C9A84C] uppercase tracking-widest mb-1">Action Plan</h4>
                               <ul className="space-y-1.5 md:space-y-2.5">
                                 {m.actionPlan.map((step, si) => (
-                                  <li key={si} className="flex gap-2 md:gap-3 text-[13px] md:text-sm text-secondary font-medium leading-normal">
+                                  <li key={si} className="flex gap-2 md:gap-3 text-[12px] leading-[1.4] md:text-sm md:leading-normal text-secondary font-medium">
                                     <span className="text-[#C9A84C] font-bold">{si + 1}.</span>
                                     {step}
                                   </li>
@@ -471,7 +478,7 @@ export function ChatInterface() {
                       )}
 
                       {m.role === 'user' && (
-                        <p className="text-sm font-medium">{m.content}</p>
+                        <p className="text-[13px] md:text-sm font-medium">{m.content}</p>
                       )}
                     </div>
 
