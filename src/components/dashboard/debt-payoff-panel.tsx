@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react"
 import { motion } from "framer-motion"
-import { Calculator, TrendingDown, Calendar, ArrowRight, Info, AlertCircle, TrendingUp } from "lucide-react"
+import { Calculator, TrendingDown, Calendar, ArrowRight, Info, AlertCircle, TrendingUp, ShieldCheck, Zap } from "lucide-react"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 
 interface Debt {
@@ -62,7 +62,7 @@ export function DebtPayoffPanel({ debts, monthlySurplus }: { debts: Debt[], mont
     return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
   }
 
-  // Calculate exact payoff dates for automated scenarios
+  // Automated scenarios
   const scenarioResults = useMemo(() => {
     const s10 = calculatePayoff(monthlySurplus * 0.1, manualInterestRate)
     const s30 = calculatePayoff(monthlySurplus * 0.3, manualInterestRate)
@@ -75,7 +75,6 @@ export function DebtPayoffPanel({ debts, monthlySurplus }: { debts: Debt[], mont
     ]
   }, [monthlySurplus, manualInterestRate, totalDebt, minPayments])
 
-  // Generate chart data for 10%, 30%, and 50% scenarios
   const chartData = useMemo(() => {
     if (totalDebt === 0) return []
     
@@ -110,7 +109,7 @@ export function DebtPayoffPanel({ debts, monthlySurplus }: { debts: Debt[], mont
     }
 
     return dataPoints
-  }, [totalDebt, monthlySurplus, surplusContribution, manualInterestRate, minPayments, standard.months])
+  }, [totalDebt, monthlySurplus, surplusContribution, manualInterestRate, minPayments, standard.months, scenarioResults])
 
   if (totalDebt === 0) {
     return (
@@ -135,8 +134,8 @@ export function DebtPayoffPanel({ debts, monthlySurplus }: { debts: Debt[], mont
       <div className="max-w-5xl mx-auto w-full space-y-10">
         
         <div>
-          <h1 className="text-3xl font-black text-white tracking-tighter mb-2">Debt Payoff Calculator</h1>
-          <p className="text-secondary text-sm font-medium">Visualize your path to financial freedom.</p>
+          <h1 className="text-3xl font-black text-white tracking-tighter mb-2">Debt Payoff Visualizer</h1>
+          <p className="text-secondary text-sm font-medium">Automatic scenario modeling for financial freedom.</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -184,21 +183,20 @@ export function DebtPayoffPanel({ debts, monthlySurplus }: { debts: Debt[], mont
                   />
                   <div className="absolute right-4 top-1/2 -translate-y-1/2 text-secondary/40 font-bold">%</div>
                 </div>
-                <p className="text-[10px] text-secondary/40 font-medium">Leave at 0 if you don&apos;t want to include interest.</p>
               </div>
 
               <div className="h-px bg-white/5" />
 
               <div className="space-y-4">
-                <h4 className="text-[10px] font-bold text-secondary/40 uppercase tracking-widest">Debt Details</h4>
+                <h4 className="text-[10px] font-bold text-secondary/40 uppercase tracking-widest">Current Summary</h4>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center bg-white/5 p-4 rounded-2xl border border-white/5">
-                    <span className="text-[12px] font-medium text-secondary/60">Total Amount</span>
-                    <span className="text-[14px] font-black text-white">{formatCurrency(totalDebt)}</span>
+                    <span className="text-[11px] font-medium text-secondary/60">Total Debt</span>
+                    <span className="text-[13px] font-black text-white">{formatCurrency(totalDebt)}</span>
                   </div>
                   <div className="flex justify-between items-center bg-white/5 p-4 rounded-2xl border border-white/5">
-                    <span className="text-[12px] font-medium text-secondary/60">Interest (Applied)</span>
-                    <span className="text-[14px] font-black text-white">{manualInterestRate || 0}%</span>
+                    <span className="text-[11px] font-medium text-secondary/60">Min. Payments</span>
+                    <span className="text-[13px] font-black text-white">{formatCurrency(minPayments)}/mo</span>
                   </div>
                 </div>
               </div>
@@ -207,86 +205,62 @@ export function DebtPayoffPanel({ debts, monthlySurplus }: { debts: Debt[], mont
 
           <div className="lg:col-span-2 space-y-6">
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <motion.div 
-                layout
-                className="bg-[#111827] border border-white/5 rounded-[32px] p-8 shadow-2xl shadow-black/40 relative overflow-hidden"
-              >
-                <div className="absolute top-0 right-0 p-6 opacity-5">
-                  <Calendar className="w-20 h-20 text-white" />
+            {/* HERO RESULT SECTION */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-[#111827] border border-white/5 rounded-[40px] p-10 shadow-2xl relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 p-8 opacity-[0.03]">
+                <ShieldCheck className="w-48 h-48 text-white" />
+              </div>
+              
+              <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+                <div className="space-y-2">
+                  <p className="text-[10px] font-bold text-secondary/40 uppercase tracking-[3px]">Your Projected Debt-Free Date</p>
+                  <h2 className={`text-6xl font-black ${surplusContribution > 0 ? 'text-white' : 'text-white/30'} tracking-tighter transition-all`}>
+                    {surplusContribution > 0 ? getPayoffDate(optimized.months) : "Enter Payment"}
+                  </h2>
                 </div>
-                <p className="text-[10px] font-bold text-secondary/40 uppercase tracking-[0.2em] mb-4">Projected Payoff Date</p>
-                <div className="space-y-4">
-                  <div className="flex flex-col">
-                    <p className={`text-4xl font-black ${isOverSurplus || surplusContribution === 0 ? 'text-white/20' : 'text-white'} tracking-tighter transition-colors`}>
-                      {surplusContribution > 0 ? getPayoffDate(optimized.months) : "---"}
-                    </p>
-                    {surplusContribution === 0 && (
-                      <p className="mt-4 text-[11px] text-secondary/40 font-medium leading-relaxed">
-                        Enter a monthly contribution to calculate your payoff strategy.
-                      </p>
-                    )}
-                    {isOverSurplus && (
-                      <p className="mt-4 text-[11px] text-danger/60 font-medium leading-relaxed">
-                        Input exceeds available surplus. Please adjust.
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </motion.div>
 
-              <motion.div 
-                layout
-                className="bg-[#111827] border border-[#C9A84C]/20 rounded-[32px] p-8 shadow-2xl shadow-[#C9A84C]/5 relative overflow-hidden"
-              >
-                <div className="absolute top-0 right-0 p-6 opacity-5">
-                  <TrendingUp className="w-20 h-20 text-[#C9A84C]" />
-                </div>
-                <p className="text-[10px] font-bold text-secondary/40 uppercase tracking-[0.2em] mb-4">Interest Savings</p>
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-secondary/40 text-[11px] font-bold uppercase mb-1">Total Savings</p>
-                    <p className={`text-4xl font-black ${isOverSurplus || surplusContribution === 0 ? 'text-[#C9A84C]/20' : 'text-[#C9A84C]'} tracking-tighter transition-colors`}>
-                      {surplusContribution > 0 && !isOverSurplus ? formatCurrency(interestSaved) : "$--"}
-                    </p>
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center gap-3 bg-white/5 border border-white/5 rounded-2xl px-5 py-3">
+                     <TrendingDown className="w-4 h-4 text-[#C9A84C]" />
+                     <div className="flex flex-col">
+                        <span className="text-[9px] font-bold text-secondary/40 uppercase">Interest Saved</span>
+                        <span className="text-sm font-black text-white">{surplusContribution > 0 ? formatCurrency(interestSaved) : "$--"}</span>
+                     </div>
                   </div>
-                  <p className="text-secondary text-[12px] font-medium leading-relaxed pr-8 line-clamp-2">
-                    {surplusContribution > 0 
-                      ? (manualInterestRate > 0 
-                          ? `By paying ${formatCurrency(surplusContribution)} extra per month, you avoid ${formatCurrency(interestSaved)} in interest.`
-                          : "Extra payments shorten your timeline without additional interest savings.")
-                      : "Enter a contribution to see interest savings."}
-                  </p>
-                </div>
-              </motion.div>
-            </div>
-
-            <div className={`bg-[#111827] border border-white/5 rounded-[32px] p-10 shadow-2xl shadow-black/40 ${isOverSurplus ? 'opacity-40 grayscale pointer-events-none' : ''} transition-all duration-500`}>
-              <div className="flex items-center justify-between mb-8">
-                <div>
-                  <h4 className="text-[10px] font-bold text-secondary/40 uppercase tracking-[0.2em] mb-1">Strategic Payoff Forecast</h4>
-                  <p className="text-[11px] text-secondary/60">Benchmarking automated surplus scenarios against your current plan.</p>
-                </div>
-                <div className="flex items-center gap-2">
-                   <div className="w-2 h-2 rounded-full bg-[#C9A84C] animate-pulse" />
-                   <span className="text-[9px] font-bold text-[#C9A84C] uppercase tracking-widest">Live Strategy Hub</span>
+                  <div className="flex items-center gap-3 bg-[#C9A84C]/10 border border-[#C9A84C]/20 rounded-2xl px-5 py-3">
+                     <Zap className="w-4 h-4 text-[#C9A84C]" />
+                     <div className="flex flex-col">
+                        <span className="text-[9px] font-bold text-[#C9A84C] uppercase">Time Saved</span>
+                        <span className="text-sm font-black text-[#C9A84C]">{surplusContribution > 0 ? `${monthsSaved} Months` : "--"}</span>
+                     </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Automated Scenario Badges */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
-                {scenarioResults.map((s) => (
-                  <div key={s.id} className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 space-y-1">
-                    <div className="flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: s.color }} />
-                      <span className="text-[9px] font-bold text-secondary/40 uppercase tracking-widest">{s.label}</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-sm font-black text-white">{s.date}</span>
-                      <span className="text-[8px] font-medium text-secondary/30">+{formatCurrency(s.extra)}/mo</span>
-                    </div>
-                  </div>
-                ))}
+              <div className="mt-8 pt-8 border-t border-white/5 flex flex-wrap gap-x-8 gap-y-4">
+                <div className="text-[11px] font-medium text-secondary/60">
+                   Strategy Benchmark: <span className="text-emerald-500 font-bold ml-1">50% Surplus ({scenarioResults[2].date})</span>
+                </div>
+                <div className="text-[11px] font-medium text-secondary/60">
+                   Balanced Pace: <span className="text-indigo-400 font-bold ml-1">30% Surplus ({scenarioResults[1].date})</span>
+                </div>
+              </div>
+            </motion.div>
+
+            <div className={`bg-[#111827] border border-white/5 rounded-[40px] p-10 shadow-2xl shadow-black/40 ${isOverSurplus ? 'opacity-40 grayscale pointer-events-none' : ''} transition-all duration-500`}>
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h4 className="text-[10px] font-bold text-secondary/40 uppercase tracking-[0.2em] mb-1">Strategic Payoff Comparison</h4>
+                  <p className="text-[11px] text-secondary/60">Comparing automated surplus tiers against your current plan.</p>
+                </div>
+                <div className="flex items-center gap-2 opacity-50">
+                   <div className="w-2 h-2 rounded-full bg-[#C9A84C]" />
+                   <span className="text-[9px] font-bold text-[#C9A84C] uppercase tracking-widest">Model Forecast</span>
+                </div>
               </div>
 
               <div className="h-[300px] w-full mt-4">
@@ -332,23 +306,23 @@ export function DebtPayoffPanel({ debts, monthlySurplus }: { debts: Debt[], mont
                         )
                       }}
                     />
-                    <Line type="monotone" dataKey="p10" name="10% Surplus" stroke="#C9A84C" strokeWidth={2} dot={false} strokeOpacity={0.3} />
-                    <Line type="monotone" dataKey="p30" name="30% Surplus" stroke="#6366F1" strokeWidth={2} dot={false} strokeOpacity={0.3} />
-                    <Line type="monotone" dataKey="p50" name="50% Surplus" stroke="#10B981" strokeWidth={2} dot={false} strokeOpacity={0.3} />
+                    <Line type="monotone" dataKey="p10" name="10% Surplus" stroke="#C9A84C" strokeWidth={2} dot={false} strokeOpacity={0.2} />
+                    <Line type="monotone" dataKey="p30" name="30% Surplus" stroke="#6366F1" strokeWidth={2} dot={false} strokeOpacity={0.2} />
+                    <Line type="monotone" dataKey="p50" name="50% Surplus" stroke="#10B981" strokeWidth={2} dot={false} strokeOpacity={0.2} />
                     <Line type="monotone" dataKey="current" name="Your Strategy" stroke="#FFFFFF" strokeWidth={4} dot={false} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
 
-              <div className="mt-10 flex items-start gap-4 bg-[#C9A84C]/5 border border-[#C9A84C]/10 p-6 rounded-[28px]">
-                <div className="w-10 h-10 rounded-full bg-[#C9A84C]/20 flex items-center justify-center shrink-0">
-                  <Info className="w-5 h-5 text-[#C9A84C]" />
+              <div className="mt-10 flex items-start gap-4 bg-white/[0.02] border border-white/5 p-6 rounded-[28px]">
+                <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center shrink-0">
+                  <Info className="w-5 h-5 text-secondary/40" />
                 </div>
                 <div className="space-y-1">
-                  <p className="text-[13px] text-white font-bold tracking-tight">Financial Insight</p>
+                  <p className="text-[13px] text-white font-bold tracking-tight">Financial Intelligence</p>
                   <p className="text-[11px] text-secondary font-medium leading-relaxed">
                     {surplusContribution > 0 
-                      ? `Your chosen allocation of ${formatCurrency(surplusContribution)} per month puts your payoff velocity at a high level. At this pace, you will be debt-free by ${getPayoffDate(optimized.months)}.`
+                      ? `At this velocity, you will be debt-free by ${getPayoffDate(optimized.months)}. Increasing contribution to 50% surplus saves an additional ${formatCurrency(interestSaved)} and ${monthsSaved} months.`
                       : "Allocate a portion of your monthly surplus to see your personalized payoff timeline. Even small increases (shown in the 10% line) can shave years off your debt burden."}
                   </p>
                 </div>
