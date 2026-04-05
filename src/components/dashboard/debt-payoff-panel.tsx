@@ -75,42 +75,6 @@ export function DebtPayoffPanel({ debts, monthlySurplus }: { debts: Debt[], mont
     ]
   }, [monthlySurplus, manualInterestRate, totalDebt, minPayments])
 
-  const chartData = useMemo(() => {
-    if (totalDebt === 0) return []
-    
-    const scenarios = [
-      ...scenarioResults,
-      { id: 'current', label: 'Your Path', extra: surplusContribution }
-    ]
-
-    const annualRate = manualInterestRate || 0
-    const monthlyRate = (annualRate / 100) / 12
-    const dataPoints: any[] = []
-    
-    const maxMonths = standard.months > 60 ? Math.min(120, standard.months) : Math.max(12, standard.months)
-    const step = Math.max(1, Math.floor(maxMonths / 12))
-
-    for (let m = 0; m <= maxMonths; m += step) {
-      const point: any = { month: m, name: getPayoffDate(m) }
-      
-      scenarios.forEach(s => {
-        let balance = totalDebt
-        const totalMonthly = minPayments + s.extra
-        
-        for (let i = 0; i < m; i++) {
-          const interest = balance * monthlyRate
-          balance = Math.max(0, balance + interest - totalMonthly)
-        }
-        point[s.id] = Math.round(balance)
-      })
-      
-      dataPoints.push(point)
-      if (scenarios.every(s => point[s.id] === 0)) break
-    }
-
-    return dataPoints
-  }, [totalDebt, monthlySurplus, surplusContribution, manualInterestRate, minPayments, standard.months, scenarioResults])
-
   if (totalDebt === 0) {
     return (
       <div className="flex-1 flex items-center justify-center p-8">
@@ -135,7 +99,7 @@ export function DebtPayoffPanel({ debts, monthlySurplus }: { debts: Debt[], mont
         
         <div>
           <h1 className="text-3xl font-black text-white tracking-tighter mb-2">Debt Payoff Visualizer</h1>
-          <p className="text-secondary text-sm font-medium">Automatic scenario modeling for financial freedom.</p>
+          <p className="text-secondary text-sm font-medium">Clear metrics for your path to financial freedom.</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -204,8 +168,6 @@ export function DebtPayoffPanel({ debts, monthlySurplus }: { debts: Debt[], mont
           </div>
 
           <div className="lg:col-span-2 space-y-6">
-            
-            {/* HERO RESULT SECTION */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -243,91 +205,13 @@ export function DebtPayoffPanel({ debts, monthlySurplus }: { debts: Debt[], mont
 
               <div className="mt-8 pt-8 border-t border-white/5 flex flex-wrap gap-x-8 gap-y-4">
                 <div className="text-[11px] font-medium text-secondary/60">
-                   Strategy Benchmark: <span className="text-emerald-500 font-bold ml-1">50% Surplus ({scenarioResults[2].date})</span>
+                   Strategic Path: <span className="text-emerald-500 font-bold ml-1">50% Surplus ({scenarioResults[2].date})</span>
                 </div>
                 <div className="text-[11px] font-medium text-secondary/60">
-                   Balanced Pace: <span className="text-indigo-400 font-bold ml-1">30% Surplus ({scenarioResults[1].date})</span>
+                   Balanced Path: <span className="text-indigo-400 font-bold ml-1">30% Surplus ({scenarioResults[1].date})</span>
                 </div>
               </div>
             </motion.div>
-
-            <div className={`bg-[#111827] border border-white/5 rounded-[40px] p-10 shadow-2xl shadow-black/40 ${isOverSurplus ? 'opacity-40 grayscale pointer-events-none' : ''} transition-all duration-500`}>
-              <div className="flex items-center justify-between mb-8">
-                <div>
-                  <h4 className="text-[10px] font-bold text-secondary/40 uppercase tracking-[0.2em] mb-1">Strategic Payoff Comparison</h4>
-                  <p className="text-[11px] text-secondary/60">Comparing automated surplus tiers against your current plan.</p>
-                </div>
-                <div className="flex items-center gap-2 opacity-50">
-                   <div className="w-2 h-2 rounded-full bg-[#C9A84C]" />
-                   <span className="text-[9px] font-bold text-[#C9A84C] uppercase tracking-widest">Model Forecast</span>
-                </div>
-              </div>
-
-              <div className="h-[300px] w-full mt-4">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData} margin={{ top: 20, right: 30, left: 10, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                    <XAxis 
-                      dataKey="name" 
-                      stroke="#4B5563" 
-                      fontSize={10} 
-                      tickLine={false} 
-                      axisLine={false}
-                      dy={10}
-                    />
-                    <YAxis 
-                      stroke="#4B5563" 
-                      fontSize={10} 
-                      tickLine={false} 
-                      axisLine={false}
-                      tickFormatter={(value) => `$${value}`}
-                    />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: '#111827', 
-                        borderColor: 'rgba(255,255,255,0.1)', 
-                        borderRadius: '16px',
-                        fontSize: '11px',
-                        color: '#fff'
-                      }} 
-                      itemStyle={{ color: '#fff' }}
-                      formatter={(v: any) => formatCurrency(v)}
-                    />
-                    <Legend 
-                      verticalAlign="top" 
-                      height={36} 
-                      iconType="circle"
-                      formatter={(value, entry: any) => {
-                        const scenario = [...scenarioResults, { id: 'current', label: 'Your Path', date: getPayoffDate(optimized.months) }].find(s => s.id === entry.dataKey || value.includes(s.label))
-                        return (
-                          <span className="text-[10px] uppercase tracking-widest font-black ml-1 mr-4">
-                            {value} <span className="text-secondary/40 ml-1">({scenario?.date})</span>
-                          </span>
-                        )
-                      }}
-                    />
-                    <Line type="monotone" dataKey="p10" name="10% Surplus" stroke="#C9A84C" strokeWidth={2} dot={false} strokeOpacity={0.2} />
-                    <Line type="monotone" dataKey="p30" name="30% Surplus" stroke="#6366F1" strokeWidth={2} dot={false} strokeOpacity={0.2} />
-                    <Line type="monotone" dataKey="p50" name="50% Surplus" stroke="#10B981" strokeWidth={2} dot={false} strokeOpacity={0.2} />
-                    <Line type="monotone" dataKey="current" name="Your Strategy" stroke="#FFFFFF" strokeWidth={4} dot={false} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-
-              <div className="mt-10 flex items-start gap-4 bg-white/[0.02] border border-white/5 p-6 rounded-[28px]">
-                <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center shrink-0">
-                  <Info className="w-5 h-5 text-secondary/40" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[13px] text-white font-bold tracking-tight">Financial Intelligence</p>
-                  <p className="text-[11px] text-secondary font-medium leading-relaxed">
-                    {surplusContribution > 0 
-                      ? `At this velocity, you will be debt-free by ${getPayoffDate(optimized.months)}. Increasing contribution to 50% surplus saves an additional ${formatCurrency(interestSaved)} and ${monthsSaved} months.`
-                      : "Allocate a portion of your monthly surplus to see your personalized payoff timeline. Even small increases (shown in the 10% line) can shave years off your debt burden."}
-                  </p>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
