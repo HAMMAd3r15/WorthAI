@@ -62,14 +62,25 @@ export function DebtPayoffPanel({ debts, monthlySurplus }: { debts: Debt[], mont
     return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
   }
 
+  // Calculate exact payoff dates for automated scenarios
+  const scenarioResults = useMemo(() => {
+    const s10 = calculatePayoff(monthlySurplus * 0.1, manualInterestRate)
+    const s30 = calculatePayoff(monthlySurplus * 0.3, manualInterestRate)
+    const s50 = calculatePayoff(monthlySurplus * 0.5, manualInterestRate)
+    
+    return [
+      { id: 'p10', label: '10% Surplus', extra: monthlySurplus * 0.1, months: s10.months, date: getPayoffDate(s10.months), color: '#C9A84C' },
+      { id: 'p30', label: '30% Surplus', extra: monthlySurplus * 0.3, months: s30.months, date: getPayoffDate(s30.months), color: '#6366F1' },
+      { id: 'p50', label: '50% Surplus', extra: monthlySurplus * 0.5, months: s50.months, date: getPayoffDate(s50.months), color: '#10B981' }
+    ]
+  }, [monthlySurplus, manualInterestRate, totalDebt, minPayments])
+
   // Generate chart data for 10%, 30%, and 50% scenarios
   const chartData = useMemo(() => {
     if (totalDebt === 0) return []
     
     const scenarios = [
-      { id: 'p10', label: '10% Impact', extra: monthlySurplus * 0.1 },
-      { id: 'p30', label: '30% Impact', extra: monthlySurplus * 0.3 },
-      { id: 'p50', label: '50% Impact', extra: monthlySurplus * 0.5 },
+      ...scenarioResults,
       { id: 'current', label: 'Your Path', extra: surplusContribution }
     ]
 
@@ -251,15 +262,31 @@ export function DebtPayoffPanel({ debts, monthlySurplus }: { debts: Debt[], mont
             </div>
 
             <div className={`bg-[#111827] border border-white/5 rounded-[32px] p-10 shadow-2xl shadow-black/40 ${isOverSurplus ? 'opacity-40 grayscale pointer-events-none' : ''} transition-all duration-500`}>
-              <div className="flex items-center justify-between mb-10">
+              <div className="flex items-center justify-between mb-8">
                 <div>
                   <h4 className="text-[10px] font-bold text-secondary/40 uppercase tracking-[0.2em] mb-1">Strategic Payoff Forecast</h4>
-                  <p className="text-[11px] text-secondary/60">Benchmarking your path against 10%, 30%, and 50% surplus allocation.</p>
+                  <p className="text-[11px] text-secondary/60">Benchmarking automated surplus scenarios against your current plan.</p>
                 </div>
                 <div className="flex items-center gap-2">
                    <div className="w-2 h-2 rounded-full bg-[#C9A84C] animate-pulse" />
-                   <span className="text-[9px] font-bold text-[#C9A84C] uppercase tracking-widest">Interactive Preview</span>
+                   <span className="text-[9px] font-bold text-[#C9A84C] uppercase tracking-widest">Live Strategy Hub</span>
                 </div>
+              </div>
+
+              {/* Automated Scenario Badges */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+                {scenarioResults.map((s) => (
+                  <div key={s.id} className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 space-y-1">
+                    <div className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: s.color }} />
+                      <span className="text-[9px] font-bold text-secondary/40 uppercase tracking-widest">{s.label}</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-black text-white">{s.date}</span>
+                      <span className="text-[8px] font-medium text-secondary/30">+{formatCurrency(s.extra)}/mo</span>
+                    </div>
+                  </div>
+                ))}
               </div>
 
               <div className="h-[300px] w-full mt-4">
@@ -296,7 +323,14 @@ export function DebtPayoffPanel({ debts, monthlySurplus }: { debts: Debt[], mont
                       verticalAlign="top" 
                       height={36} 
                       iconType="circle"
-                      formatter={(value) => <span className="text-[10px] uppercase tracking-widest font-black ml-1 mr-4">{value}</span>}
+                      formatter={(value, entry: any) => {
+                        const scenario = [...scenarioResults, { id: 'current', label: 'Your Path', date: getPayoffDate(optimized.months) }].find(s => s.id === entry.dataKey || value.includes(s.label))
+                        return (
+                          <span className="text-[10px] uppercase tracking-widest font-black ml-1 mr-4">
+                            {value} <span className="text-secondary/40 ml-1">({scenario?.date})</span>
+                          </span>
+                        )
+                      }}
                     />
                     <Line type="monotone" dataKey="p10" name="10% Surplus" stroke="#C9A84C" strokeWidth={2} dot={false} strokeOpacity={0.3} />
                     <Line type="monotone" dataKey="p30" name="30% Surplus" stroke="#6366F1" strokeWidth={2} dot={false} strokeOpacity={0.3} />
