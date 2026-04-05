@@ -69,7 +69,7 @@ export async function POST(req: Request) {
     // Financial profile
     supabase
       .from('financial_profiles')
-      .select('*')
+      .select('*, currency_symbol')
       .eq('user_id', user.id)
       .single()
   ])
@@ -91,6 +91,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Financial profile not found." }, { status: 404 })
   }
 
+  const symbol = financial.currency_symbol || '$'
   const totalIncome = (financial.income_sources || []).reduce((a: number, c: any) => a + (c.amount || 0), 0)
   const totalExpenses = (financial.expenses || []).reduce((a: number, c: any) => a + (c.amount || 0), 0)
   const monthlySurplus = totalIncome - totalExpenses
@@ -120,18 +121,18 @@ export async function POST(req: Request) {
   }
 
   For WINS and CONCERNS:
-  - Text: Be highly analytical and human-like. Instead of "You have $X", say "You have a sizable savings of $X which provides a strong cushion." or "Monthly expenses of $X far exceed your income of $Y — you are spending ZX what you earn."
+  - Text: Be highly analytical and human-like. Instead of "You have ${symbol}X", say "You have a sizable savings of ${symbol}X which provides a strong cushion." or "Monthly expenses of ${symbol}X far exceed your income of ${symbol}Y — you are spending ZX what you earn."
   - Tags: Use concise, uppercase labels (e.g., SAVINGS, DEBT, NET WORTH, CASH FLOW, CRITICAL, URGENT, WARNING).
 
   User Financial Profile:
-  - Monthly Income: $${totalIncome}
-  - Monthly Expenses: $${totalExpenses}
-  - Monthly Surplus: $${monthlySurplus}
-  - Savings: $${financial.savings || 0}
-  - Debts: $${totalDebts}
-  - Net Worth: $${netWorth}
+  - Monthly Income: ${symbol}${totalIncome}
+  - Monthly Expenses: ${symbol}${totalExpenses}
+  - Monthly Surplus: ${symbol}${monthlySurplus}
+  - Savings: ${symbol}${financial.savings || 0}
+  - Debts: ${symbol}${totalDebts}
+  - Net Worth: ${symbol}${netWorth}
 
-  Be honest and specific based on these numbers.`
+  Be honest and specific based on these numbers and ALWAYS use the currency symbol: ${symbol}`
 
   try {
     let completion;
