@@ -117,9 +117,30 @@ export function OnboardingFlow() {
     
     if (user) {
       try {
+        // Check for historical limits (prevents reset-abuse by deleting/remaking accounts)
+        const { data: histLimit } = await supabase
+          .from('historical_limits')
+          .select('questions_today, last_reset_date')
+          .eq('email', user.email)
+          .single()
+
+        const today = new Date().toISOString().split('T')[0]
+        let questionsToday = 0
+        let lastResetDate = today
+
+        if (histLimit && histLimit.last_reset_date === today) {
+          questionsToday = histLimit.questions_today || 0
+          lastResetDate = histLimit.last_reset_date
+        }
+
         const { data: pData, error: profileError } = await supabase
           .from('profiles')
-          .upsert({ id: user.id, plan: 'free' }, { onConflict: 'id' })
+          .upsert({ 
+            id: user.id, 
+            plan: 'free',
+            questions_today: questionsToday,
+            last_reset_date: lastResetDate
+          }, { onConflict: 'id' })
           .select()
         
         if (profileError) throw profileError

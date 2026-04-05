@@ -21,13 +21,27 @@ export function SettingsPanel({
 }) {
   const router = useRouter()
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const supabase = createClient()
 
   const confirmDelete = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) {
+    setIsDeleting(true)
+    try {
+      const response = await fetch('/api/user/delete', {
+        method: 'POST'
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || "Failed to delete account")
+      }
+
       await supabase.auth.signOut()
       router.push('/')
+      router.refresh()
+    } catch (error: any) {
+      alert("Error: " + error.message)
+      setIsDeleting(false)
     }
   }
 
@@ -76,9 +90,20 @@ export function SettingsPanel({
               </div>
               <button 
                 onClick={() => setShowDeleteConfirm(true)}
-                className="flex items-center gap-2 text-[11px] text-danger/60 hover:text-danger transition-colors font-bold uppercase tracking-wider"
+                disabled={isDeleting}
+                className="flex items-center gap-2 text-[11px] text-danger/60 hover:text-danger disabled:opacity-50 transition-colors font-bold uppercase tracking-wider"
               >
-                <Trash2 className="w-3.5 h-3.5" /> Delete Account
+                {isDeleting ? (
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </motion.div>
+                ) : (
+                  <Trash2 className="w-3.5 h-3.5" />
+                )}
+                {isDeleting ? 'Deleting...' : 'Delete Account'}
               </button>
             </div>
           </section>
