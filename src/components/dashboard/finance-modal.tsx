@@ -62,6 +62,10 @@ export function FinanceModal({
   }
 
   const removeItem = (field: 'income_sources' | 'expenses' | 'debts', index: number) => {
+    if ((field === 'income_sources' || field === 'expenses') && formData[field].length <= 1) {
+      setNotice({ message: `At least one ${field === 'income_sources' ? 'income source' : 'expense'} is required.`, type: 'warning' })
+      return
+    }
     setFormData(prev => ({
       ...prev,
       [field]: prev[field].filter((_: any, i: number) => i !== index)
@@ -77,17 +81,27 @@ export function FinanceModal({
   }
 
   const handleSave = async () => {
+    // Validation
+    const hasValidIncome = formData.income_sources.some((i: { label: string, amount: number }) => i.label.trim() !== "" && i.amount > 0)
+    const hasValidExpense = formData.expenses.some((i: { label: string, amount: number }) => i.label.trim() !== "" && i.amount > 0)
+
+    if (!hasValidIncome || !hasValidExpense) {
+      setNotice({ 
+        message: "Please ensure you have at least one valid income source and one monthly expense with a label and amount.", 
+        type: 'error' 
+      })
+      return
+    }
+
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
-
-
       const { data: fData, error: finError } = await supabase
         .from('financial_profiles')
         .upsert({
           user_id: user.id,
-          income_sources: formData.income_sources.filter((i: { label: string }) => i.label),
-          expenses: formData.expenses.filter((i: { label: string }) => i.label),
+          income_sources: formData.income_sources.filter((i: { label: string; amount: number }) => i.label.trim() !== "" && i.amount > 0),
+          expenses: formData.expenses.filter((i: { label: string; amount: number }) => i.label.trim() !== "" && i.amount > 0),
           savings: formData.savings,
           debts: formData.debts.filter((i: { label: string }) => i.label),
           updated_at: new Date().toISOString()
@@ -95,8 +109,6 @@ export function FinanceModal({
         .select()
 
       if (!finError) {
-
-        
         onSuccess()
         onClose()
       } else {
@@ -196,7 +208,8 @@ export function FinanceModal({
                   </div>
                   <button 
                     onClick={() => removeItem('income_sources', i)}
-                    className="p-3 text-secondary hover:text-danger hover:bg-danger/10 rounded-lg transition-all"
+                    disabled={formData.income_sources.length <= 1}
+                    className="p-3 text-secondary hover:text-danger hover:bg-danger/10 rounded-lg transition-all disabled:opacity-20 disabled:cursor-not-allowed"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -237,7 +250,8 @@ export function FinanceModal({
                   </div>
                   <button 
                     onClick={() => removeItem('expenses', i)}
-                    className="p-3 text-secondary hover:text-danger hover:bg-danger/10 rounded-lg transition-all"
+                    disabled={formData.expenses.length <= 1}
+                    className="p-3 text-secondary hover:text-danger hover:bg-danger/10 rounded-lg transition-all disabled:opacity-20 disabled:cursor-not-allowed"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>

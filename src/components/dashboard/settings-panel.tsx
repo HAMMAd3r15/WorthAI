@@ -116,7 +116,7 @@ export function SettingsPanel({
             </div>
             <div className="p-5 bg-white/[0.03] rounded-2xl border border-white/5 space-y-2">
               <label className="text-[10px] font-bold uppercase text-secondary/50 block mb-1">Current Status</label>
-              <p className="text-2xl font-black capitalize text-white">Free Forever</p>
+              <p className="text-2xl font-black capitalize text-white">Free Plan</p>
               <p className="text-[11px] text-secondary/60 italic leading-relaxed">
                 You have full access to all WorthAI features, including the Monthly Audit and advanced AI advisor.
               </p>
