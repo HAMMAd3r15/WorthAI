@@ -3,6 +3,7 @@
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { ModalProvider } from "@/components/providers/modal-provider"
 import { DataProvider, useData } from "@/components/providers/data-provider"
+import { CurrencyProvider } from "@/context/CurrencyContext"
 
 function DashboardWrapper({ children }: { children: React.ReactNode }) {
   const { profile, refreshData } = useData()
@@ -28,8 +29,10 @@ export function ClientLayout({
   initialProfile: any
 }) {
   return (
-    <DataProvider initialProfile={initialProfile} initialFinancial={initialFinancial}>
-       <DashboardWrapper>{children}</DashboardWrapper>
-    </DataProvider>
+    <CurrencyProvider>
+      <DataProvider initialProfile={initialProfile} initialFinancial={initialFinancial}>
+         <DashboardWrapper>{children}</DashboardWrapper>
+      </DataProvider>
+    </CurrencyProvider>
   )
 }

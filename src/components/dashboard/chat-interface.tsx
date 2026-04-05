@@ -7,6 +7,7 @@ import { WorthLogo } from "@/components/ui/worth-logo"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
 import { useData } from "@/components/providers/data-provider"
+import { useCurrency } from "@/context/CurrencyContext"
 
 type Message = {
   role: 'user' | 'assistant'
@@ -60,6 +61,7 @@ const formatDateLabel = (date: string) => {
 export function ChatInterface() {
   const supabase = createClient()
   const { profile, refreshData } = useData()
+  const { symbol } = useCurrency()
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
   const usage = profile?.questions_today ?? 0
@@ -74,8 +76,8 @@ export function ChatInterface() {
 
   // Typing animation for placeholder
   const placeholders = [
-    "E.g. Can I afford a Tesla Model 3 this year?",
-    "E.g. How should I invest $10k for retirement?",
+    `E.g. Can I afford a Tesla Model 3 this year?`,
+    `E.g. How should I invest ${symbol}10k for retirement?`,
     "E.g. What's the best way to save for a house?",
     "E.g. Should I pay off debt or invest extra cash?",
     "E.g. How much should my emergency fund be?"

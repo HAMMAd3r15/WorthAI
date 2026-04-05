@@ -4,6 +4,7 @@ import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { X, Target, Heart, Home, Car, Plane, Briefcase, GraduationCap, CheckCircle2 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
+import { useCurrency } from "@/context/CurrencyContext"
 
 interface AddGoalModalProps {
   userId: string
@@ -25,6 +26,7 @@ const CATEGORIES = [
 
 export function AddGoalModal({ userId, isOpen, onClose, onSuccess, initialData }: AddGoalModalProps) {
   const supabase = createClient()
+  const { symbol } = useCurrency()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     title: initialData?.title || "",
@@ -124,28 +126,34 @@ export function AddGoalModal({ userId, isOpen, onClose, onSuccess, initialData }
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[10px] font-bold text-secondary/40 uppercase tracking-widest mb-1.5 block ml-1">Target ($)</label>
-                  <input 
-                    required
-                    type="number"
-                    step="0.01"
-                    value={formData.target_amount}
-                    onChange={e => setFormData({ ...formData, target_amount: e.target.value })}
-                    placeholder="50,000"
-                    className="w-full bg-[#111827] border border-white/5 rounded-2xl px-5 py-4 text-sm text-white placeholder-secondary/20 focus:border-[#C9A84C]/40 outline-none transition-all"
-                  />
+                  <label className="text-[10px] font-bold text-secondary/40 uppercase tracking-widest mb-1.5 block ml-1">Target ({symbol})</label>
+                  <div className="relative">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary/40 font-bold text-sm">{symbol}</div>
+                    <input 
+                      required
+                      type="number"
+                      step="0.01"
+                      value={formData.target_amount}
+                      onChange={e => setFormData({ ...formData, target_amount: e.target.value })}
+                      placeholder="50,000"
+                      className="w-full bg-[#111827] border border-white/5 rounded-2xl pl-10 pr-5 py-4 text-sm text-white placeholder-secondary/20 focus:border-[#C9A84C]/40 outline-none transition-all"
+                    />
+                  </div>
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-secondary/40 uppercase tracking-widest mb-1.5 block ml-1">Saved ($)</label>
-                  <input 
-                    required
-                    type="number"
-                    step="0.01"
-                    value={formData.current_amount}
-                    onChange={e => setFormData({ ...formData, current_amount: e.target.value })}
-                    placeholder="10,000"
-                    className="w-full bg-[#111827] border border-white/5 rounded-2xl px-5 py-4 text-sm text-white placeholder-secondary/20 focus:border-[#C9A84C]/40 outline-none transition-all"
-                  />
+                  <label className="text-[10px] font-bold text-secondary/40 uppercase tracking-widest mb-1.5 block ml-1">Saved ({symbol})</label>
+                  <div className="relative">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary/40 font-bold text-sm">{symbol}</div>
+                    <input 
+                      required
+                      type="number"
+                      step="0.01"
+                      value={formData.current_amount}
+                      onChange={e => setFormData({ ...formData, current_amount: e.target.value })}
+                      placeholder="10,000"
+                      className="w-full bg-[#111827] border border-white/5 rounded-2xl pl-10 pr-5 py-4 text-sm text-white placeholder-secondary/20 focus:border-[#C9A84C]/40 outline-none transition-all"
+                    />
+                  </div>
                 </div>
               </div>
 

@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Plus, Target, Trash2, Edit2, CheckCircle2, AlertCircle, Calendar, Home, Car, Plane, Briefcase, GraduationCap, Heart } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { AddGoalModal } from "./add-goal-modal"
+import { useCurrency } from "@/context/CurrencyContext"
+import { formatAmount } from "@/lib/utils"
 
 const CATEGORY_ICONS: Record<string, any> = {
   savings: Target,
@@ -18,6 +20,7 @@ const CATEGORY_ICONS: Record<string, any> = {
 
 export function GoalsPanel({ userId }: { userId: string }) {
   const supabase = createClient()
+  const { symbol } = useCurrency()
   const [goals, setGoals] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [showAddModal, setShowAddModal] = useState(false)
@@ -60,13 +63,7 @@ export function GoalsPanel({ userId }: { userId: string }) {
     }
   }
 
-  const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0,
-    }).format(val)
-  }
+  const formatCurrencyValue = (val: number) => formatAmount(val, symbol)
 
   const calculateProgress = (current: number, target: number) => {
     return Math.min(Math.round((current / target) * 100), 100)
@@ -177,8 +174,8 @@ export function GoalsPanel({ userId }: { userId: string }) {
                       <div>
                         <p className="text-[10px] font-bold text-secondary/40 uppercase tracking-widest mb-1.5">Saved Amount</p>
                         <p className="text-2xl font-black text-white tracking-tighter">
-                          {formatCurrency(goal.current_amount)}
-                          <span className="text-lg text-secondary/40 font-bold ml-1.5">/ {formatCurrency(goal.target_amount)}</span>
+                          {formatCurrencyValue(goal.current_amount)}
+                          <span className="text-lg text-secondary/40 font-bold ml-1.5">/ {formatCurrencyValue(goal.target_amount)}</span>
                         </p>
                       </div>
                       <div className="text-right">

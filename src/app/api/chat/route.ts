@@ -369,7 +369,11 @@ export async function POST(req: Request) {
     .eq('id', user.id)
 
   // 6. Get Financial Profile (handle missing gracefully)
-  const { data: financial } = await supabase.from('financial_profiles').select('*').eq('user_id', user.id).single()
+  const { data: financial } = await supabase
+    .from('financial_profiles')
+    .select('income_sources, expenses, savings, debts, currency_symbol, currency_code')
+    .eq('user_id', user.id)
+    .single()
   if (!financial) {
     return NextResponse.json({ 
       redirect: '/onboarding', 
@@ -466,12 +470,13 @@ export async function POST(req: Request) {
     })
   }
   
+  const symbol = financial.currency_symbol || '$'
   const totalIncome = (financial.income_sources || []).reduce((a: number, c: any) => a + (c.amount || 0), 0)
   const totalExpenses = (financial.expenses || []).reduce((a: number, c: any) => a + (c.amount || 0), 0)
   const monthlySurplus = totalIncome - totalExpenses
-  const incomeBreakdown = (financial.income_sources || []).map((i: any) => `${i.label}: $${i.amount}`).join(', ')
-  const expenseBreakdown = (financial.expenses || []).map((i: any) => `${i.label}: $${i.amount}`).join(', ')
-  const debtsBreakdown = (financial.debts || []).map((i: any) => `${i.label}: $${i.amount}`).join(', ')
+  const incomeBreakdown = (financial.income_sources || []).map((i: any) => `${i.label}: ${symbol}${i.amount}`).join(', ')
+  const expenseBreakdown = (financial.expenses || []).map((i: any) => `${i.label}: ${symbol}${i.amount}`).join(', ')
+  const debtsBreakdown = (financial.debts || []).map((i: any) => `${i.label}: ${symbol}${i.amount}`).join(', ')
 
   const systemPrompt = `You are Worth — a sharp, brutally honest financial advisor with a fun personality. You're like that friend who studied finance, keeps it real, and occasionally roasts you when you say something dumb. You care about the person but you don't sugarcoat.
 
@@ -522,33 +527,34 @@ Still start with a verdict that captures the overall picture. Then give real ans
 
 CALCULATIONS:
 Always show the math. Be exact. No rounding unless the number is already round.
-Example: 'Your surplus is $1,247.50/month', not 'about $1,200'
+Example: 'Your surplus is ${symbol}1,247.50/month', not 'about ${symbol}1,200'
 
 CRITICAL EVALUATION FOR INVESTING:
 If the user asks about investing their savings or surplus, evaluate these specific thresholds:
-1. Emergency Fund: They need at least 3 months of total expenses ($${totalExpenses * 3}) in savings ($${financial.savings || 0}).
+1. Emergency Fund: They need at least 3 months of total expenses (${symbol}${totalExpenses * 3}) in savings (${symbol}${financial.savings || 0}).
 2. Debt: High-interest debt (Credit Cards, Personal Loans) should be prioritized over investing.
-3. Surplus: They must have a positive monthly surplus ($${monthlySurplus}) to invest consistently.
+3. Surplus: They must have a positive monthly surplus (${symbol}${monthlySurplus}) to invest consistently.
 
 INVESTMENT VERDICT LOGIC:
 - If (Savings >= 3x Expenses) AND (No/Low High-Interest Debt) AND (Surplus > 0):
   Lean YES or GOOD MOVE. Suggest a smart allocation (e.g. "80% into low-cost index funds like VOO, 20% kept in your HYSA").
 - If (Savings < 3x Expenses): 
-  Lean NOT YET. Explain: "You're $${(totalExpenses * 3) - (financial.savings || 0)} short of a safe 3-month emergency fund."
+  Lean NOT YET. Explain: "You're ${symbol}${(totalExpenses * 3) - (financial.savings || 0)} short of a safe 3-month emergency fund."
 - If (High-interest debts exist):
   Lean NO. Explain: "Your debt interest is likely higher than your expected market returns. Kill the debt first."
 
 IMPORTANT RULES:
 - ALWAYS use the user's actual numbers from the profile below, never generic advice
+- ALWAYS use the corect currency symbol: ${symbol} (${financial.currency_code})
 - ALWAYS have a verdict tag — never respond without one
 - Keep responses concise — respect their time
 - Verdict options: YES, NO, NOT YET, ACHIEVABLE, CHALLENGING, URGENT, ON TRACK, GOOD MOVE, RISKY, ILLOGICAL
 
 User Financial Profile:
-- Monthly Income: $${totalIncome} (${incomeBreakdown})
-- Monthly Expenses: $${totalExpenses} (${expenseBreakdown})
-- Monthly Surplus: $${monthlySurplus}
-- Savings: $${financial.savings || 0}
+- Monthly Income: ${symbol}${totalIncome} (${incomeBreakdown})
+- Monthly Expenses: ${symbol}${totalExpenses} (${expenseBreakdown})
+- Monthly Surplus: ${symbol}${monthlySurplus}
+- Savings: ${symbol}${financial.savings || 0}
 - Debts: ${debtsBreakdown || 'None'}`
 
   try {

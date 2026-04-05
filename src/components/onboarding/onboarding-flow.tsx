@@ -4,10 +4,20 @@ import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Plus, Trash2, ChevronRight, ChevronLeft, Check } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { CURRENCIES } from "@/lib/currencies"
+import { 
+  Plus, 
+  Trash2, 
+  ChevronRight, 
+  ChevronLeft, 
+  Check, 
+  Search, 
+  Globe, 
+  CheckCircle2 
+} from "lucide-react"
 
 type FinancialItem = { label: string; amount: number }
 
@@ -19,6 +29,10 @@ export function OnboardingFlow() {
   const [profile, setProfile] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
   const [isShaking, setIsShaking] = useState(false)
+  
+  // Currency State
+  const [searchQuery, setSearchQuery] = useState("")
+  const [selectedCurrency, setSelectedCurrency] = useState(CURRENCIES.find(c => c.code === "USD") || CURRENCIES[0])
 
   useEffect(() => {
     async function fetchProfile() {
@@ -40,8 +54,8 @@ export function OnboardingFlow() {
   const [expenses, setExpenses] = useState<FinancialItem[]>([{ label: "", amount: 0 }])
   const [savings, setSavings] = useState(0)
   const [debts, setDebts] = useState<FinancialItem[]>([])
-
-  const totalSteps = 4
+  
+  const totalSteps = 5
 
   const addItem = (setter: any) => {
     setError(null)
@@ -68,13 +82,19 @@ export function OnboardingFlow() {
   const validateStep = (currentStep: number) => {
     setError(null)
     if (currentStep === 1) {
+      if (!selectedCurrency) {
+        setError("Please select a currency to continue")
+        triggerShake()
+        return false
+      }
+    } else if (currentStep === 2) {
       const hasValidIncome = income.some(i => i.label.trim() !== "" && i.amount > 0)
       if (!hasValidIncome) {
         setError("Please enter your monthly income to continue")
         triggerShake()
         return false
       }
-    } else if (currentStep === 2) {
+    } else if (currentStep === 3) {
       const hasValidExpense = expenses.some(i => i.label.trim() !== "" && i.amount > 0)
       if (!hasValidExpense) {
         setError("Please enter your monthly expenses to continue")
@@ -112,6 +132,10 @@ export function OnboardingFlow() {
             expenses: expenses.filter(i => i.label && i.amount > 0),
             savings: savings,
             debts: debts.filter(i => i.label && i.amount > 0),
+            currency_code: selectedCurrency.code,
+            currency_symbol: selectedCurrency.symbol,
+            currency_name: selectedCurrency.name,
+            country_name: selectedCurrency.country,
             updated_at: new Date().toISOString()
           }, { onConflict: 'user_id' })
           .select()
@@ -154,8 +178,14 @@ export function OnboardingFlow() {
     }
   }
 
+  const filteredCurrencies = CURRENCIES.filter(c => 
+    c.country.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    c.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    c.name.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
   return (
-    <div className="max-w-2xl mx-auto py-12 px-4">
+    <div className="max-w-2xl mx-auto py-12 px-4 no-scrollbar">
       <div className="mb-10 flex items-center gap-3">
         {Array.from({ length: totalSteps }).map((_, i) => (
           <div 
@@ -175,6 +205,59 @@ export function OnboardingFlow() {
         >
           {step === 1 && (
             <Card className={cardClass}>
+              <div className="flex items-center gap-3 mb-2">
+                <Globe className="w-5 h-5 text-[#C9A84C]" />
+                <h2 className="text-3xl font-bold tracking-tight text-white">Where are you from?</h2>
+              </div>
+              <p className="text-secondary text-base mb-8 opacity-80">We&apos;ll show all amounts in your local currency.</p>
+              
+              <div className="space-y-4 mb-8">
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary/40" />
+                  <input 
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    placeholder="Search country or currency..."
+                    className="w-full bg-[#0D1117] border border-white/5 pl-11 pr-4 py-4 text-sm focus:border-[#C9A84C]/50 focus:ring-1 focus:ring-[#C9A84C]/40 outline-none transition-all rounded-xl text-white"
+                  />
+                </div>
+
+                <div className="max-h-[320px] overflow-y-auto no-scrollbar border border-white/5 rounded-xl bg-[#0D1117]/50">
+                  {filteredCurrencies.map((c, i) => (
+                    <button
+                      key={`${c.code}-${i}`}
+                      onClick={() => setSelectedCurrency(c)}
+                      className={`w-full flex items-center justify-between p-4 transition-all border-b border-white/[0.02] last:border-0 hover:bg-[#C9A84C]/5 ${selectedCurrency?.code === c.code && selectedCurrency?.country === c.country ? 'bg-[#C9A84C]/10 border-l-[3px] border-l-[#C9A84C]' : 'border-l-[3px] border-l-transparent'}`}
+                    >
+                      <span className={`text-[15px] ${selectedCurrency?.code === c.code && selectedCurrency?.country === c.country ? 'text-white font-bold' : 'text-white/70'}`}>
+                        {c.country}
+                      </span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-[14px] font-black text-[#C9A84C] opacity-80">
+                          {c.symbol} {c.code}
+                        </span>
+                        {selectedCurrency?.code === c.code && selectedCurrency?.country === c.country && (
+                          <CheckCircle2 className="w-4 h-4 text-[#C9A84C]" />
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-4">
+                <Button 
+                  onClick={nextStep} 
+                  className="bg-[#C9A84C] hover:bg-[#B89740] text-[#0A0D14] font-black rounded-xl px-8 h-12 flex items-center gap-2 group transition-all"
+                >
+                  Continue <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </div>
+            </Card>
+          )}
+
+          {step === 2 && (
+            <Card className={cardClass}>
               <h2 className="text-3xl font-bold mb-3 tracking-tight">Monthly Income</h2>
               <p className="text-secondary text-base mb-10 opacity-80">Add all your recurring income sources.</p>
               
@@ -186,7 +269,7 @@ export function OnboardingFlow() {
                 {income.map((item, i) => (
                   <div key={i} className="flex gap-6 items-end">
                     <div className="flex-1 space-y-2">
-                      <label className={labelClass}>Source Label</label>
+                       <label className={labelClass}>Source Label</label>
                       <input 
                         value={item.label}
                         onChange={e => updateItem(setIncome, i, 'label', e.target.value)}
@@ -195,7 +278,7 @@ export function OnboardingFlow() {
                       />
                     </div>
                     <div className="w-40 space-y-2">
-                      <label className={labelClass}>Amount ($)</label>
+                      <label className={labelClass}>Amount ({selectedCurrency.symbol})</label>
                       <input 
                         type="number"
                         value={item.amount === 0 ? "" : item.amount}
@@ -219,7 +302,10 @@ export function OnboardingFlow() {
                 </button>
               </motion.div>
 
-              <div className="flex justify-center">
+              <div className="flex justify-between items-center">
+                <Button onClick={prevStep} size="sm" className={nextBtnClass}>
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
                 <Button onClick={nextStep} size="sm" className={nextBtnClass}>
                   <ChevronRight className="w-4 h-4" />
                 </Button>
@@ -227,7 +313,7 @@ export function OnboardingFlow() {
             </Card>
           )}
 
-          {step === 2 && (
+          {step === 3 && (
             <Card className={cardClass}>
               <h2 className="text-3xl font-bold mb-3 tracking-tight">Monthly Expenses</h2>
               <p className="text-secondary text-base mb-10 opacity-80">Rent, food, transport, subscriptions, etc.</p>
@@ -249,7 +335,7 @@ export function OnboardingFlow() {
                       />
                     </div>
                     <div className="w-40 space-y-2">
-                      <label className={labelClass}>Amount ($)</label>
+                      <label className={labelClass}>Amount ({selectedCurrency.symbol})</label>
                       <input 
                         type="number"
                         value={item.amount === 0 ? "" : item.amount}
@@ -284,14 +370,14 @@ export function OnboardingFlow() {
             </Card>
           )}
 
-          {step === 3 && (
+          {step === 4 && (
             <Card className={cardClass}>
               <h2 className="text-3xl font-bold mb-3 tracking-tight">Total Savings</h2>
               <p className="text-secondary text-base mb-10 opacity-80">How much do you have set aside? (Optional)</p>
               
               <div className="space-y-4 mb-8">
                 <div className="space-y-2">
-                  <label className={labelClass}>Total Cash/Savings ($)</label>
+                  <label className={labelClass}>Total Cash/Savings ({selectedCurrency.symbol})</label>
                   <input 
                     type="number"
                     value={savings === 0 ? "" : savings}
@@ -316,7 +402,7 @@ export function OnboardingFlow() {
             </Card>
           )}
 
-          {step === 4 && (
+          {step === 5 && (
             <Card className={cardClass}>
               <h2 className="text-3xl font-bold mb-3 tracking-tight">Any Debts?</h2>
               <p className="text-secondary text-base mb-10 opacity-80">Student loans, credit cards, car loans, etc. (Optional)</p>
@@ -325,7 +411,7 @@ export function OnboardingFlow() {
                 {debts.map((item, i) => (
                   <div key={i} className="flex gap-6 items-end">
                     <div className="flex-1 space-y-2">
-                      <label className={labelClass}>Debt Label</label>
+                       <label className={labelClass}>Debt Label</label>
                       <input 
                         value={item.label}
                         onChange={e => updateItem(setDebts, i, 'label', e.target.value)}
@@ -334,7 +420,7 @@ export function OnboardingFlow() {
                       />
                     </div>
                     <div className="w-40 space-y-2">
-                      <label className={labelClass}>Remaining Bal. ($)</label>
+                      <label className={labelClass}>Remaining Bal. ({selectedCurrency.symbol})</label>
                       <input 
                         type="number"
                         value={item.amount === 0 ? "" : item.amount}

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { X, Plus, Trash2, Save, Loader2, Crown, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
+import { useCurrency } from "@/context/CurrencyContext"
 
 type FinancialItem = { label: string; amount: number }
 
@@ -20,6 +21,7 @@ export function FinanceModal({
   onSuccess: () => void
 }) {
   const supabase = createClient()
+  const { symbol } = useCurrency()
   const [loading, setLoading] = useState(false)
   const [notice, setNotice] = useState<{ message: string; type: 'warning' | 'error' } | null>(null)
   const isPro = profile?.plan === 'pro'
@@ -174,19 +176,24 @@ export function FinanceModal({
             <div className="space-y-4">
               {formData.income_sources.map((item: { label: string; amount: number }, i: number) => (
                 <div key={i} className="flex gap-3">
-                  <input 
-                    placeholder="Source Label"
-                    className={inputClass}
-                    value={item.label}
-                    onChange={e => updateItem('income_sources', i, 'label', e.target.value)}
-                  />
-                  <input 
-                    type="number"
-                    placeholder="Amount"
-                    className={`${inputClass} w-32`}
-                    value={item.amount === 0 ? "" : item.amount}
-                    onChange={e => updateItem('income_sources', i, 'amount', Number(e.target.value))}
-                  />
+                  <div className="relative flex-1">
+                    <input 
+                      placeholder="Source Label"
+                      className={inputClass}
+                      value={item.label}
+                      onChange={e => updateItem('income_sources', i, 'label', e.target.value)}
+                    />
+                  </div>
+                  <div className="relative w-32">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary/40 font-bold text-xs">{symbol}</div>
+                    <input 
+                      type="number"
+                      placeholder="Amount"
+                      className={`${inputClass} pl-7`}
+                      value={item.amount === 0 ? "" : item.amount}
+                      onChange={e => updateItem('income_sources', i, 'amount', Number(e.target.value))}
+                    />
+                  </div>
                   <button 
                     onClick={() => removeItem('income_sources', i)}
                     className="p-3 text-secondary hover:text-danger hover:bg-danger/10 rounded-lg transition-all"
@@ -210,19 +217,24 @@ export function FinanceModal({
             <div className="space-y-4">
               {formData.expenses.map((item: { label: string; amount: number }, i: number) => (
                 <div key={i} className="flex gap-3">
-                  <input 
-                    placeholder="Expense Name"
-                    className={inputClass}
-                    value={item.label}
-                    onChange={e => updateItem('expenses', i, 'label', e.target.value)}
-                  />
-                  <input 
-                    type="number"
-                    placeholder="Amount"
-                    className={`${inputClass} w-32`}
-                    value={item.amount === 0 ? "" : item.amount}
-                    onChange={e => updateItem('expenses', i, 'amount', Number(e.target.value))}
-                  />
+                  <div className="relative flex-1">
+                    <input 
+                      placeholder="Expense Name"
+                      className={inputClass}
+                      value={item.label}
+                      onChange={e => updateItem('expenses', i, 'label', e.target.value)}
+                    />
+                  </div>
+                  <div className="relative w-32">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary/40 font-bold text-xs">{symbol}</div>
+                    <input 
+                      type="number"
+                      placeholder="Amount"
+                      className={`${inputClass} pl-7`}
+                      value={item.amount === 0 ? "" : item.amount}
+                      onChange={e => updateItem('expenses', i, 'amount', Number(e.target.value))}
+                    />
+                  </div>
                   <button 
                     onClick={() => removeItem('expenses', i)}
                     className="p-3 text-secondary hover:text-danger hover:bg-danger/10 rounded-lg transition-all"
@@ -243,13 +255,16 @@ export function FinanceModal({
           {/* Savings Section */}
           <section>
             <span className={sectionLabelClass}>Total Savings</span>
-            <input 
-              type="number"
-              placeholder="Total Cash/Savings"
-              className={inputClass}
-              value={formData.savings === 0 ? "" : formData.savings}
-              onChange={e => setFormData({ ...formData, savings: Number(e.target.value) })}
-            />
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary/40 font-bold text-xs">{symbol}</div>
+              <input 
+                type="number"
+                placeholder="Total Cash/Savings"
+                className={`${inputClass} pl-7`}
+                value={formData.savings === 0 ? "" : formData.savings}
+                onChange={e => setFormData({ ...formData, savings: Number(e.target.value) })}
+              />
+            </div>
           </section>
 
           {/* Debts Section */}
@@ -258,19 +273,24 @@ export function FinanceModal({
             <div className="space-y-4">
               {formData.debts.map((item: { label: string; amount: number }, i: number) => (
                 <div key={i} className="flex gap-3">
-                  <input 
-                    placeholder="Debt Label"
-                    className={inputClass}
-                    value={item.label}
-                    onChange={e => updateItem('debts', i, 'label', e.target.value)}
-                  />
-                  <input 
-                    type="number"
-                    placeholder="Amount"
-                    className={`${inputClass} w-32`}
-                    value={item.amount === 0 ? "" : item.amount}
-                    onChange={e => updateItem('debts', i, 'amount', Number(e.target.value))}
-                  />
+                  <div className="relative flex-1">
+                    <input 
+                      placeholder="Debt Label"
+                      className={inputClass}
+                      value={item.label}
+                      onChange={e => updateItem('debts', i, 'label', e.target.value)}
+                    />
+                  </div>
+                  <div className="relative w-32">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary/40 font-bold text-xs">{symbol}</div>
+                    <input 
+                      type="number"
+                      placeholder="Amount"
+                      className={`${inputClass} pl-7`}
+                      value={item.amount === 0 ? "" : item.amount}
+                      onChange={e => updateItem('debts', i, 'amount', Number(e.target.value))}
+                    />
+                  </div>
                   <button 
                     onClick={() => removeItem('debts', i)}
                     className="p-3 text-secondary hover:text-danger hover:bg-danger/10 rounded-lg transition-all"

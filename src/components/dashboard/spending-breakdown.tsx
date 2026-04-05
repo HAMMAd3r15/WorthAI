@@ -3,6 +3,8 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts"
 import { motion, AnimatePresence } from "framer-motion"
 import { Settings } from "lucide-react"
+import { useCurrency } from "@/context/CurrencyContext"
+import { formatAmount } from "@/lib/utils"
 
 interface SpendingBreakdownProps {
   expenses: any[]
@@ -21,6 +23,7 @@ const COLORS = [
 ]
 
 export function SpendingBreakdown({ expenses, onOpenSettings }: SpendingBreakdownProps) {
+  const { symbol } = useCurrency()
   const total = expenses.reduce((acc, exp) => acc + (exp.amount || 0), 0)
   
   const data = expenses.map(exp => ({
@@ -49,13 +52,7 @@ export function SpendingBreakdown({ expenses, onOpenSettings }: SpendingBreakdow
     )
   }
 
-  const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0,
-    }).format(val)
-  }
+  const formatCurrencyValue = (val: number) => formatAmount(val, symbol)
 
   return (
     <div className="bg-[#111827] border border-white/5 rounded-[24px] p-6 shadow-xl shadow-black/20">
@@ -95,7 +92,7 @@ export function SpendingBreakdown({ expenses, onOpenSettings }: SpendingBreakdow
               labelStyle={{ display: 'none' }}
               formatter={(value: any, name: any) => [
                 <span key="val" className="flex items-center gap-2">
-                  {formatCurrency(Number(value))}
+                  {formatCurrencyValue(Number(value))}
                   <span className="text-[10px] text-secondary font-medium">({total > 0 ? ((Number(value) / total) * 100).toFixed(1) : 0}%)</span>
                 </span>,
                 name
@@ -107,7 +104,7 @@ export function SpendingBreakdown({ expenses, onOpenSettings }: SpendingBreakdow
         {/* Center Text */}
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
           <p className="text-[10px] font-bold text-secondary/40 uppercase tracking-widest mb-1">Total</p>
-          <p className="text-lg font-black text-white tracking-tight">{formatCurrency(total)}</p>
+          <p className="text-lg font-black text-white tracking-tight">{formatCurrencyValue(total)}</p>
         </div>
       </div>
 
@@ -125,7 +122,7 @@ export function SpendingBreakdown({ expenses, onOpenSettings }: SpendingBreakdow
               </span>
             </div>
             <div className="text-right">
-              <p className="text-[12px] font-bold text-white leading-none mb-1">{formatCurrency(item.value)}</p>
+              <p className="text-[12px] font-bold text-white leading-none mb-1">{formatCurrencyValue(item.value)}</p>
               <p className="text-[9px] font-bold text-secondary/40">{((item.value / total) * 100).toFixed(0)}%</p>
             </div>
           </div>

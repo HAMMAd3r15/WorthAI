@@ -15,12 +15,15 @@ import { useRouter } from "next/navigation"
 import { AnimatePresence, motion } from "framer-motion"
 
 import { useData } from "@/components/providers/data-provider"
+import { useCurrency } from "@/context/CurrencyContext"
+import { formatAmount } from "@/lib/utils"
 
 export default function DashboardPage() {
   const router = useRouter()
   const supabase = createClient()
   const { profile, financial, refreshData } = useData()
   const { openPricing } = useModals()
+  const { symbol } = useCurrency()
   
   const [activeView, setActiveView] = useState<'chat' | 'goals' | 'debt'>('chat')
   
@@ -133,7 +136,7 @@ export default function DashboardPage() {
                 className="text-[14px] font-black tracking-tight"
                 style={{ color: pill.color }}
               >
-                {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(pill.value)}
+                {formatAmount(pill.value, symbol)}
               </p>
             </div>
           ))}

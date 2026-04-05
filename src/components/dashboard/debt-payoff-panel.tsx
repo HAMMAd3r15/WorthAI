@@ -4,6 +4,8 @@ import { useState, useMemo } from "react"
 import { motion } from "framer-motion"
 import { Calculator, TrendingDown, Calendar, ArrowRight, Info, AlertCircle, TrendingUp, ShieldCheck, Zap } from "lucide-react"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
+import { useCurrency } from "@/context/CurrencyContext"
+import { formatAmount } from "@/lib/utils"
 
 interface Debt {
   label: string
@@ -13,6 +15,7 @@ interface Debt {
 }
 
 export function DebtPayoffPanel({ debts, monthlySurplus }: { debts: Debt[], monthlySurplus: number }) {
+  const { symbol } = useCurrency()
   const [surplusContribution, setSurplusContribution] = useState(0)
   const [manualInterestRate, setManualInterestRate] = useState(0)
 
@@ -47,13 +50,7 @@ export function DebtPayoffPanel({ debts, monthlySurplus }: { debts: Debt[], mont
   const monthsSaved = standard.months - optimized.months
   const interestSaved = standard.interest - optimized.interest
 
-  const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0,
-    }).format(val)
-  }
+  const formatCurrencyValue = (val: number) => formatAmount(val, symbol)
 
   const getPayoffDate = (months: number) => {
     if (months >= 600) return "Never"
@@ -111,12 +108,12 @@ export function DebtPayoffPanel({ debts, monthlySurplus }: { debts: Debt[], mont
                 <div className="flex items-center justify-between">
                   <h4 className="text-[10px] font-bold text-secondary/40 uppercase tracking-widest">Surplus Contribution</h4>
                   <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-md ${isOverSurplus ? 'bg-danger/10 text-danger' : 'bg-success/10 text-success'}`}>
-                    Available: {formatCurrency(monthlySurplus)}
+                    Available: {formatCurrencyValue(monthlySurplus)}
                   </span>
                 </div>
                 
                 <div className="relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary/40 font-bold">$</div>
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary/40 font-bold">{symbol}</div>
                   <input 
                     type="number"
                     value={surplusContribution || ''}
@@ -129,7 +126,7 @@ export function DebtPayoffPanel({ debts, monthlySurplus }: { debts: Debt[], mont
                 {isOverSurplus && (
                   <div className="flex items-center gap-2 text-danger text-[10px] font-bold bg-danger/5 p-3 rounded-xl border border-danger/10">
                     <AlertCircle className="w-3.5 h-3.5" />
-                    <span>Contribution exceeds your monthly surplus of {formatCurrency(monthlySurplus)}</span>
+                    <span>Contribution exceeds your monthly surplus of {formatCurrencyValue(monthlySurplus)}</span>
                   </div>
                 )}
               </div>
@@ -156,11 +153,11 @@ export function DebtPayoffPanel({ debts, monthlySurplus }: { debts: Debt[], mont
                 <div className="space-y-3">
                   <div className="flex justify-between items-center bg-white/5 p-4 rounded-2xl border border-white/5">
                     <span className="text-[11px] font-medium text-secondary/60">Total Debt</span>
-                    <span className="text-[13px] font-black text-white">{formatCurrency(totalDebt)}</span>
+                    <span className="text-[13px] font-black text-white">{formatCurrencyValue(totalDebt)}</span>
                   </div>
                   <div className="flex justify-between items-center bg-white/5 p-4 rounded-2xl border border-white/5">
                     <span className="text-[11px] font-medium text-secondary/60">Min. Payments</span>
-                    <span className="text-[13px] font-black text-white">{formatCurrency(minPayments)}/mo</span>
+                    <span className="text-[13px] font-black text-white">{formatCurrencyValue(minPayments)}/mo</span>
                   </div>
                 </div>
               </div>

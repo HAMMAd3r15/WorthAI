@@ -6,6 +6,8 @@ import { useModals } from "@/components/providers/modal-provider"
 import { motion } from "framer-motion"
 import { MessageSquare, Target, Calculator, FileText, TrendingUp, Wallet, CreditCard, PlusCircle } from "lucide-react"
 import { SpendingBreakdown } from "./spending-breakdown"
+import { useCurrency } from "@/context/CurrencyContext"
+import { formatAmount } from "@/lib/utils"
 
 interface SidebarProps {
   activeView: 'chat' | 'goals' | 'debt'
@@ -28,6 +30,7 @@ export function Sidebar({
 }: SidebarProps) {
   const { financial } = useData()
   const { openReport } = useModals()
+  const { symbol } = useCurrency()
 
   const totalIncome = (financial?.income_sources || []).reduce((acc: number, item: any) => acc + (item.amount || 0), 0)
   const totalExpenses = (financial?.expenses || []).reduce((acc: number, item: any) => acc + (item.amount || 0), 0)
@@ -35,13 +38,7 @@ export function Sidebar({
   const totalSavings = financial?.savings || 0
   const monthlySurplus = totalIncome - totalExpenses
 
-  const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0,
-    }).format(val)
-  }
+  const formatCurrencyValue = (val: number) => formatAmount(val, symbol)
 
   const navItems = [
     { id: 'chat', label: 'AI Advisor', icon: MessageSquare },
@@ -116,7 +113,7 @@ export function Sidebar({
                 <span className="text-[9px] font-bold text-secondary/40 uppercase tracking-widest">{metric.label.split(' ')[1]}</span>
               </div>
               <div>
-                <p className="text-[14px] font-black text-white tracking-tight leading-none mb-0.5">{formatCurrency(metric.value)}</p>
+                <p className="text-[14px] font-black text-white tracking-tight leading-none mb-0.5">{formatCurrencyValue(metric.value)}</p>
                 <p className="text-[10px] font-bold text-secondary/40 uppercase">Total</p>
               </div>
             </div>
