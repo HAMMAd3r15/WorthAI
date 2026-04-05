@@ -177,38 +177,12 @@ export function DebtPayoffPanel({ debts, monthlySurplus }: { debts: Debt[], mont
                 <ShieldCheck className="w-48 h-48 text-white" />
               </div>
               
-              <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
-                <div className="space-y-2">
-                  <p className="text-[10px] font-bold text-secondary/40 uppercase tracking-[3px]">Your Projected Debt-Free Date</p>
-                  <h2 className={`text-6xl font-black ${surplusContribution > 0 ? 'text-white' : 'text-white/30'} tracking-tighter transition-all`}>
+              <div className="relative z-10 flex flex-col items-center justify-center py-10">
+                <div className="space-y-4 text-center">
+                  <p className="text-[12px] font-bold text-secondary/40 uppercase tracking-[4px]">Your Projected Debt-Free Date</p>
+                  <h2 className={`text-7xl font-black ${surplusContribution > 0 ? 'text-white' : 'text-white/30'} tracking-tighter transition-all`}>
                     {surplusContribution > 0 ? getPayoffDate(optimized.months) : "Enter Payment"}
                   </h2>
-                </div>
-
-                <div className="flex flex-col gap-4">
-                  <div className="flex items-center gap-3 bg-white/5 border border-white/5 rounded-2xl px-5 py-3">
-                     <TrendingDown className="w-4 h-4 text-[#C9A84C]" />
-                     <div className="flex flex-col">
-                        <span className="text-[9px] font-bold text-secondary/40 uppercase">Interest Saved</span>
-                        <span className="text-sm font-black text-white">{surplusContribution > 0 ? formatCurrency(interestSaved) : "$--"}</span>
-                     </div>
-                  </div>
-                  <div className="flex items-center gap-3 bg-[#C9A84C]/10 border border-[#C9A84C]/20 rounded-2xl px-5 py-3">
-                     <Zap className="w-4 h-4 text-[#C9A84C]" />
-                     <div className="flex flex-col">
-                        <span className="text-[9px] font-bold text-[#C9A84C] uppercase">Time Saved</span>
-                        <span className="text-sm font-black text-[#C9A84C]">{surplusContribution > 0 ? `${monthsSaved} Months` : "--"}</span>
-                     </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-8 pt-8 border-t border-white/5 flex flex-wrap gap-x-8 gap-y-4">
-                <div className="text-[11px] font-medium text-secondary/60">
-                   Strategic Path: <span className="text-emerald-500 font-bold ml-1">50% Surplus ({scenarioResults[2].date})</span>
-                </div>
-                <div className="text-[11px] font-medium text-secondary/60">
-                   Balanced Path: <span className="text-indigo-400 font-bold ml-1">30% Surplus ({scenarioResults[1].date})</span>
                 </div>
               </div>
             </motion.div>
