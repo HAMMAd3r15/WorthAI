@@ -74,10 +74,17 @@ export function Sidebar({
                 : 'bg-transparent border-transparent text-secondary hover:bg-white/5 hover:text-white'
             }`}
           >
-            <div className="flex items-center gap-3.5 relative z-10">
-              <item.icon className={`w-5 h-5 ${activeView === item.id ? 'text-[#C9A84C]' : 'text-secondary/60 group-hover:text-[#C9A84C]'} transition-colors`} />
+          <div className="flex items-center gap-3.5 relative z-10">
+            <item.icon className={`w-5 h-5 ${activeView === item.id ? 'text-[#C9A84C]' : 'text-secondary/60 group-hover:text-[#C9A84C]'} transition-colors`} />
+            <div className="flex flex-col">
               <span className="text-[14px] font-bold tracking-tight">{item.label}</span>
+              {item.id === 'chat' && (
+                <span className="text-[10px] font-medium text-secondary/40 -mt-0.5">
+                  {questionsToday}/10 used today
+                </span>
+              )}
             </div>
+          </div>
             {activeView === item.id && (
               <motion.div 
                 layoutId="nav-active"

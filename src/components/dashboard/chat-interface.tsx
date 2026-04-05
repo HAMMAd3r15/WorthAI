@@ -580,10 +580,24 @@ export function ChatInterface() {
                 </motion.button>
               </div>
 
-              {/* Disclaimer */}
-              <p className="text-[11px] text-[#374151] text-center mt-2.5 font-medium tracking-tight">
-                AI guidance only · Not a licensed financial advisor
-              </p>
+              {/* Usage & Disclaimer */}
+              <div className="flex flex-col items-center gap-1.5 mt-2.5 space-y-1">
+                <div className="flex items-center gap-2">
+                  <div className="h-1 w-24 bg-white/5 rounded-full overflow-hidden">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${(usage / limit) * 100}%` }}
+                      className="h-full bg-[#C9A84C] transition-all duration-500" 
+                    />
+                  </div>
+                  <span className="text-[10px] font-bold text-secondary/40 uppercase tracking-widest leading-none">
+                     {usage} / {limit} Used
+                  </span>
+                </div>
+                <p className="text-[11px] text-[#374151] text-center font-medium tracking-tight">
+                  AI guidance only · Not a licensed financial advisor
+                </p>
+              </div>
             </>
           ) : (
             <motion.div 
@@ -596,7 +610,7 @@ export function ChatInterface() {
                 <Clock className="w-6 h-6 text-[#C9A84C]" />
               </div>
               <h3 className="text-xl font-bold text-white mb-2 relative z-10">
-                You&apos;ve used all {limit} questions for today
+                You&apos;ve used all 10 AI questions per day
               </h3>
               <p className="text-secondary text-sm mb-6 max-w-sm relative z-10 opacity-60">
                 Come back tomorrow — Worth resets at midnight

@@ -48,7 +48,7 @@ export function PricingModal({
   }
 
   const freeFeatures = [
-    "5 AI questions per day",
+    "10 AI questions per day",
     "Single income source",
     "Basic expense tracking",
     "Standard AI personality"
