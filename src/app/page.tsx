@@ -2,6 +2,7 @@ import { Hero } from "@/components/landing/hero"
 import { AboutSection } from "@/components/landing/about-section"
 import { FeatureShuffle } from "@/components/landing/feature-shuffle"
 import { FAQ } from "@/components/landing/faq"
+import { HowItHelps } from "@/components/landing/how-it-helps"
 import { Pricing } from "@/components/landing/sections"
 import { Footer } from "@/components/landing/footer"
 import Link from "next/link"
@@ -40,6 +41,8 @@ export default function Home() {
       </div>
 
       <FAQ />
+      
+      <HowItHelps />
       
       <div id="pricing" className="relative z-10">
         <Pricing />
