@@ -174,21 +174,28 @@ export function DebtPayoffPanel({ debts, monthlySurplus }: { debts: Debt[], mont
                 <div className="absolute top-0 right-0 p-6 opacity-5">
                   <Calendar className="w-20 h-20 text-white" />
                 </div>
-                <p className="text-[10px] font-bold text-secondary/40 uppercase tracking-[0.2em] mb-4">Payoff Date</p>
+                <p className="text-[10px] font-bold text-secondary/40 uppercase tracking-[0.2em] mb-4">Projected Payoff Date</p>
                 <div className="space-y-4">
-                  <div>
-                    <p className="text-secondary/40 text-[11px] font-bold uppercase mb-1">Standard</p>
-                    <p className="text-lg font-black text-white/40 line-through tracking-tight">{getPayoffDate(standard.months)}</p>
-                  </div>
-                  <div>
-                    <p className="text-[#C9A84C] text-[11px] font-bold uppercase mb-1">Accelerated</p>
-                    <p className={`text-3xl font-black ${isOverSurplus ? 'text-white/20' : 'text-white'} tracking-tighter transition-colors`}>{getPayoffDate(optimized.months)}</p>
-                  </div>
-                  <div className="pt-2">
-                    <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${isOverSurplus ? 'bg-white/5 text-white/20' : 'bg-success/10 border border-success/20 text-success'}`}>
-                      <TrendingDown className="w-3 h-3" />
-                      {isOverSurplus ? 'Waiting for valid input' : `${monthsSaved} Months Sooner`}
-                    </span>
+                  <div className="flex flex-col">
+                    <p className={`text-4xl font-black ${isOverSurplus ? 'text-white/20' : 'text-white'} tracking-tighter transition-colors`}>
+                      {getPayoffDate(optimized.months)}
+                    </p>
+                    {surplusContribution > 0 && !isOverSurplus && (
+                      <div className="mt-4 flex items-center gap-2">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-success/10 border border-success/20 text-success text-[10px] font-black uppercase tracking-widest">
+                          <TrendingDown className="w-3 h-3" />
+                          {monthsSaved} Months Sooner
+                        </span>
+                        <span className="text-[10px] text-secondary/40 font-bold uppercase line-through">
+                          Orig: {getPayoffDate(standard.months)}
+                        </span>
+                      </div>
+                    )}
+                    {(surplusContribution === 0 || isOverSurplus) && (
+                      <p className="mt-4 text-[11px] text-secondary/40 font-medium leading-relaxed">
+                        Increase your monthly surplus contribution to accelerate this date.
+                      </p>
+                    )}
                   </div>
                 </div>
               </motion.div>
@@ -206,7 +213,7 @@ export function DebtPayoffPanel({ debts, monthlySurplus }: { debts: Debt[], mont
                     <p className="text-secondary/40 text-[11px] font-bold uppercase mb-1">Total Savings</p>
                     <p className={`text-4xl font-black ${isOverSurplus ? 'text-[#C9A84C]/20' : 'text-[#C9A84C]'} tracking-tighter transition-colors`}>{isOverSurplus ? '$0' : formatCurrency(interestSaved)}</p>
                   </div>
-                  <p className="text-secondary text-[12px] font-medium leading-relaxed pr-8">
+                  <p className="text-secondary text-[12px] font-medium leading-relaxed pr-8 line-clamp-2">
                     {manualInterestRate > 0 
                       ? `By paying your surplus of ${formatCurrency(surplusContribution)} extra per month, you avoid ${formatCurrency(interestSaved)} in projected interest.`
                       : "With 0% interest, extra payments simply shorten your timeline without additional dollar savings."}
@@ -215,58 +222,64 @@ export function DebtPayoffPanel({ debts, monthlySurplus }: { debts: Debt[], mont
               </motion.div>
             </div>
 
-            {/* Timeline Visualization */}
+            {/* Strategic Impact Section */}
             <div className={`bg-[#111827] border border-white/5 rounded-[32px] p-10 shadow-2xl shadow-black/40 ${isOverSurplus ? 'opacity-40 grayscale pointer-events-none' : ''} transition-all duration-500`}>
-              <h4 className="text-[10px] font-bold text-secondary/40 uppercase tracking-[0.2em] mb-10">Payoff Timeline</h4>
-              
-              <div className="relative pt-8 pb-12">
-                {/* Track */}
-                <div className="absolute top-1/2 left-0 w-full h-1.5 bg-white/5 rounded-full -translate-y-1/2" />
-                
-                {/* Accelerated Track */}
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: `${(optimized.months / standard.months) * 100}%` }}
-                  className="absolute top-1/2 left-0 h-1.5 bg-[#C9A84C] rounded-full -translate-y-1/2 shadow-[0_0_20px_rgba(201,168,76,0.3)]"
-                />
+              <div className="flex items-center justify-between mb-10">
+                <h4 className="text-[10px] font-bold text-secondary/40 uppercase tracking-[0.2em]">Strategic Impact Summary</h4>
+                <div className="flex items-center gap-2">
+                   <div className="w-2 h-2 rounded-full bg-[#C9A84C] animate-pulse" />
+                   <span className="text-[9px] font-bold text-[#C9A84C] uppercase tracking-widest">Optimized Real-Time</span>
+                </div>
+              </div>
 
-                {/* Milestones */}
-                <div className="relative flex justify-between px-2">
-                  <div className="flex flex-col items-center gap-4">
-                    <div className="w-4 h-4 rounded-full bg-white border-4 border-[#0A0D14] shadow-xl z-10" />
-                    <div className="text-center absolute -top-8 -translate-x-1/2 left-0 whitespace-nowrap">
-                      <p className="text-[10px] font-black text-white uppercase tracking-widest">Today</p>
-                    </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="p-6 rounded-[24px] bg-white/5 border border-white/5 flex flex-col gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-[#C9A84C]/10 flex items-center justify-center">
+                    <Calendar className="w-5 h-5 text-[#C9A84C]" />
                   </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-secondary/40 uppercase tracking-widest mb-1">Timeline Health</p>
+                    <p className="text-xl font-black text-white">{monthsSaved > 0 ? `${monthsSaved} Months Saved` : "Standard Pace"}</p>
+                  </div>
+                </div>
 
-                  <motion.div 
-                    layout
-                    style={{ left: `${(optimized.months / standard.months) * 100}%` }}
-                    className="flex flex-col items-center gap-4 absolute -translate-x-1/2"
-                  >
-                    <div className="w-6 h-6 rounded-full bg-[#C9A84C] border-4 border-[#0A0D14] shadow-xl z-20 flex items-center justify-center">
-                      <ArrowRight className="w-2.5 h-2.5 text-black" />
-                    </div>
-                    <div className="text-center absolute -bottom-12 whitespace-nowrap">
-                      <p className="text-[10px] font-black text-[#C9A84C] uppercase tracking-widest mb-1">Debt Free</p>
-                      <p className="text-[9px] font-bold text-secondary/40 uppercase">{getPayoffDate(optimized.months)}</p>
-                    </div>
-                  </motion.div>
+                <div className="p-6 rounded-[24px] bg-white/5 border border-white/5 flex flex-col gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
+                    <TrendingDown className="w-5 h-5 text-success" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-secondary/40 uppercase tracking-widest mb-1">Interest Impact</p>
+                    <p className="text-xl font-black text-white">{interestSaved > 0 ? formatCurrency(interestSaved) : "$0 Saved"}</p>
+                  </div>
+                </div>
 
-                  <div className="flex flex-col items-center gap-4 absolute left-full -translate-x-full">
-                    <div className="w-4 h-4 rounded-full bg-white/20 border-4 border-[#0A0D14] shadow-xl z-10" />
-                    <div className="text-center absolute -top-8 whitespace-nowrap">
-                      <p className="text-[10px] font-black text-secondary/40 uppercase tracking-widest">Original Date</p>
-                    </div>
+                <div className="p-6 rounded-[24px] bg-white/5 border border-white/5 flex flex-col gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                    <ArrowRight className="w-5 h-5 text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-secondary/40 uppercase tracking-widest mb-1">Payoff Velocity</p>
+                    <p className="text-xl font-black text-white">
+                      {surplusContribution > 0 
+                        ? `${(( (optimized.months / standard.months) ) * 100).toFixed(0)}% Speed`
+                        : "Nominal Rate"}
+                    </p>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-8 flex items-start gap-3 bg-[#C9A84C]/5 border border-[#C9A84C]/10 p-4 rounded-2xl">
-                <Info className="w-4 h-4 text-[#C9A84C] shrink-0 mt-0.5" />
-                <p className="text-[11px] text-secondary font-medium leading-relaxed">
-                  This calculator assumes consistent monthly payments. If you enter interest, it calculates compounding interest based on your average balance.
-                </p>
+              <div className="mt-10 flex items-start gap-4 bg-[#C9A84C]/5 border border-[#C9A84C]/10 p-6 rounded-[28px]">
+                <div className="w-10 h-10 rounded-full bg-[#C9A84C]/20 flex items-center justify-center shrink-0">
+                  <Info className="w-5 h-5 text-[#C9A84C]" />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[13px] text-white font-bold tracking-tight">Strategy Insights</p>
+                  <p className="text-[11px] text-secondary font-medium leading-relaxed">
+                    {surplusContribution > 0 
+                      ? `Your extra monthly contribution of ${formatCurrency(surplusContribution)} will reduce your payoff time to ${getPayoffDate(optimized.months)}. This strategy effectively compounds your wealth by removing interest burdens early.`
+                      : "Consider allocating a portion of your monthly surplus to your debts. Even small extra payments can drastically reduce the long-term interest cost and shorten your timeline to financial freedom."}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
