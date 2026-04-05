@@ -147,6 +147,9 @@ export default function DashboardPage() {
           onViewChange={setActiveView} 
           onOpenSettings={() => setShowSettings(true)}
           onLogout={handleLogoutClick}
+          financialProfile={financial}
+          questionsToday={profile?.questions_today || 0}
+          plan={profile?.plan}
         />
 
         {/* Main Content Area */}

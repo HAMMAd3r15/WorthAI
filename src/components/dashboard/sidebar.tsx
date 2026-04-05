@@ -11,9 +11,21 @@ interface SidebarProps {
   activeView: 'chat' | 'goals' | 'debt'
   onViewChange: (view: 'chat' | 'goals' | 'debt') => void
   onOpenSettings: () => void
+  onLogout: () => void
+  financialProfile: any
+  questionsToday: number
+  plan?: string
 }
 
-export function Sidebar({ activeView, onViewChange, onOpenSettings }: SidebarProps) {
+export function Sidebar({ 
+  activeView, 
+  onViewChange, 
+  onOpenSettings, 
+  onLogout,
+  financialProfile,
+  questionsToday,
+  plan
+}: SidebarProps) {
   const { financial } = useData()
   const { openReport } = useModals()
 
