@@ -167,6 +167,7 @@ export function DebtPayoffPanel({ debts, monthlySurplus }: { debts: Debt[], mont
             
             {/* Impact Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Projected Payoff Date Card */}
               <motion.div 
                 layout
                 className="bg-[#111827] border border-white/5 rounded-[32px] p-8 shadow-2xl shadow-black/40 relative overflow-hidden"
@@ -177,8 +178,8 @@ export function DebtPayoffPanel({ debts, monthlySurplus }: { debts: Debt[], mont
                 <p className="text-[10px] font-bold text-secondary/40 uppercase tracking-[0.2em] mb-4">Projected Payoff Date</p>
                 <div className="space-y-4">
                   <div className="flex flex-col">
-                    <p className={`text-4xl font-black ${isOverSurplus ? 'text-white/20' : 'text-white'} tracking-tighter transition-colors`}>
-                      {getPayoffDate(optimized.months)}
+                    <p className={`text-4xl font-black ${isOverSurplus || surplusContribution === 0 ? 'text-white/20' : 'text-white'} tracking-tighter transition-colors`}>
+                      {surplusContribution > 0 ? getPayoffDate(optimized.months) : "---"}
                     </p>
                     {surplusContribution > 0 && !isOverSurplus && (
                       <div className="mt-4 flex items-center gap-2">
@@ -191,15 +192,21 @@ export function DebtPayoffPanel({ debts, monthlySurplus }: { debts: Debt[], mont
                         </span>
                       </div>
                     )}
-                    {(surplusContribution === 0 || isOverSurplus) && (
+                    {surplusContribution === 0 && (
                       <p className="mt-4 text-[11px] text-secondary/40 font-medium leading-relaxed">
-                        Increase your monthly surplus contribution to accelerate this date.
+                        Enter a monthly contribution to calculate your payoff strategy.
+                      </p>
+                    )}
+                    {isOverSurplus && (
+                      <p className="mt-4 text-[11px] text-danger/60 font-medium leading-relaxed">
+                        Input exceeds available surplus. Please adjust.
                       </p>
                     )}
                   </div>
                 </div>
               </motion.div>
 
+              {/* Interest Savings Card */}
               <motion.div 
                 layout
                 className="bg-[#111827] border border-[#C9A84C]/20 rounded-[32px] p-8 shadow-2xl shadow-[#C9A84C]/5 relative overflow-hidden"
@@ -211,12 +218,16 @@ export function DebtPayoffPanel({ debts, monthlySurplus }: { debts: Debt[], mont
                 <div className="space-y-4">
                   <div>
                     <p className="text-secondary/40 text-[11px] font-bold uppercase mb-1">Total Savings</p>
-                    <p className={`text-4xl font-black ${isOverSurplus ? 'text-[#C9A84C]/20' : 'text-[#C9A84C]'} tracking-tighter transition-colors`}>{isOverSurplus ? '$0' : formatCurrency(interestSaved)}</p>
+                    <p className={`text-4xl font-black ${isOverSurplus || surplusContribution === 0 ? 'text-[#C9A84C]/20' : 'text-[#C9A84C]'} tracking-tighter transition-colors`}>
+                      {surplusContribution > 0 && !isOverSurplus ? formatCurrency(interestSaved) : "$--"}
+                    </p>
                   </div>
                   <p className="text-secondary text-[12px] font-medium leading-relaxed pr-8 line-clamp-2">
-                    {manualInterestRate > 0 
-                      ? `By paying your surplus of ${formatCurrency(surplusContribution)} extra per month, you avoid ${formatCurrency(interestSaved)} in projected interest.`
-                      : "With 0% interest, extra payments simply shorten your timeline without additional dollar savings."}
+                    {surplusContribution > 0 
+                      ? (manualInterestRate > 0 
+                          ? `By paying your surplus of ${formatCurrency(surplusContribution)} extra per month, you avoid ${formatCurrency(interestSaved)} in projected interest.`
+                          : "With 0% interest, extra payments simply shorten your timeline without additional dollar savings.")
+                      : "Enter a contribution to see your projected interest savings."}
                   </p>
                 </div>
               </motion.div>
@@ -239,7 +250,9 @@ export function DebtPayoffPanel({ debts, monthlySurplus }: { debts: Debt[], mont
                   </div>
                   <div>
                     <p className="text-[10px] font-bold text-secondary/40 uppercase tracking-widest mb-1">Timeline Health</p>
-                    <p className="text-xl font-black text-white">{monthsSaved > 0 ? `${monthsSaved} Months Saved` : "Standard Pace"}</p>
+                    <p className="text-xl font-black text-white">
+                      {surplusContribution > 0 ? (monthsSaved > 0 ? `${monthsSaved} Months Saved` : "Standard Pace") : "--"}
+                    </p>
                   </div>
                 </div>
 
@@ -249,7 +262,9 @@ export function DebtPayoffPanel({ debts, monthlySurplus }: { debts: Debt[], mont
                   </div>
                   <div>
                     <p className="text-[10px] font-bold text-secondary/40 uppercase tracking-widest mb-1">Interest Impact</p>
-                    <p className="text-xl font-black text-white">{interestSaved > 0 ? formatCurrency(interestSaved) : "$0 Saved"}</p>
+                    <p className="text-xl font-black text-white">
+                      {surplusContribution > 0 ? (interestSaved > 0 ? formatCurrency(interestSaved) : "$0 Saved") : "--"}
+                    </p>
                   </div>
                 </div>
 
@@ -261,8 +276,8 @@ export function DebtPayoffPanel({ debts, monthlySurplus }: { debts: Debt[], mont
                     <p className="text-[10px] font-bold text-secondary/40 uppercase tracking-widest mb-1">Payoff Velocity</p>
                     <p className="text-xl font-black text-white">
                       {surplusContribution > 0 
-                        ? `${(( (optimized.months / standard.months) ) * 100).toFixed(0)}% Speed`
-                        : "Nominal Rate"}
+                        ? `${(((optimized.months / standard.months)) * 100).toFixed(0)}% Speed`
+                        : "--"}
                     </p>
                   </div>
                 </div>
@@ -277,7 +292,7 @@ export function DebtPayoffPanel({ debts, monthlySurplus }: { debts: Debt[], mont
                   <p className="text-[11px] text-secondary font-medium leading-relaxed">
                     {surplusContribution > 0 
                       ? `Your extra monthly contribution of ${formatCurrency(surplusContribution)} will reduce your payoff time to ${getPayoffDate(optimized.months)}. This strategy effectively compounds your wealth by removing interest burdens early.`
-                      : "Consider allocating a portion of your monthly surplus to your debts. Even small extra payments can drastically reduce the long-term interest cost and shorten your timeline to financial freedom."}
+                      : "Enter a contribution amount on the left to begin your strategy. Your interest savings and payoff timeline will update dynamically as you adjust your contribution and interest rate."}
                   </p>
                 </div>
               </div>
